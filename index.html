@@ -3,22 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>免費與Claude 4 AI對話</title>
-    <meta name="description" content="免費與Claude 4 AI互動，立即提問並獲得即時回答。">
+    <title>免費AI對話</title>
+    <meta name="description" content="免費與Claude 4、Llama 3.1、Gemini等AI互動，選擇模型並即時獲得回答。">
     <meta name="keywords" content="AI, claude 4, claude 4 free, claude free">
     <style>
+        body {
+            background-color: white;
+            color: black;
+            font-family: Arial, sans-serif;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: white;
+        }
         #chat-container {
             width: 80%;
             margin: 0 auto;
             padding: 20px;
             background-color: white;
             color: black;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        body.dark-mode #chat-container {
+            background-color: #2a2a2a;
+            color: white;
         }
         #chat-box {
             height: 80vh;
             overflow-y: auto;
             border: 1px solid #ccc;
             padding: 10px;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode #chat-box {
+            background-color: #333;
+            border-color: #555;
         }
         .message {
             margin: 10px 0;
@@ -31,22 +54,34 @@
             background-color: #e6f7ff;
             margin-right: auto;
         }
+        body.dark-mode .user {
+            background-color: #4a90e2;
+        }
         .ai {
             text-align: right;
             background-color: #f0f0f0;
             margin-left: auto;
         }
+        body.dark-mode .ai {
+            background-color: #666;
+        }
         #input-area {
             display: flex;
             margin-top: 10px;
+            gap: 10px;
         }
-        #user-input {
-            flex: 1;
+        #model-select, #user-input {
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            flex: 1;
         }
-        #send-button {
+        body.dark-mode #model-select, body.dark-mode #user-input {
+            background-color: #444;
+            color: white;
+            border-color: #666;
+        }
+        #send-button, #toggle-theme {
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
@@ -58,9 +93,34 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+        body.dark-mode #send-button, body.dark-mode #toggle-theme {
+            background-color: #4a90e2;
+        }
         .ad-container {
             text-align: center;
             margin: 20px 0;
+        }
+        #loading {
+            display: none;
+            margin-top: 10px;
+            color: #007bff;
+        }
+        body.dark-mode #loading {
+            color: #4a90e2;
+        }
+        #custom-404 {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 5px;
+            margin: 20px auto;
+            max-width: 80%;
+        }
+        body.dark-mode #custom-404 {
+            background-color: #664d03;
+            border-color: #997404;
         }
     </style>
 </head>
@@ -82,18 +142,35 @@
     <!-- LINE Ads 橫幅占位符（頂部） -->
     <div class="ad-container">
         <div style="width: 320px; height: 100px; background-color: #ddd; display: inline-block;">
-            LINE Ads 橫幅廣告占位符（請在LINE Ads平台獲取代碼）
+            LINE Ads 橫幅廣告占位符（請在LINE Ads平台獲取代碼，確保URL正確以避免404錯誤）
         </div>
     </div>
 
+    <!-- 自定義404頁面占位符 -->
+    <div id="custom-404">
+        <h2>404 頁面未找到</h2>
+        <p>抱歉，您訪問的頁面不存在。請檢查URL或返回首頁。</p>
+        <a href="/">返回首頁</a>
+    </div>
+
     <div id="chat-container">
-        <h1>免費與Claude 4 AI對話</h1>
-        <p>向Claude 4 AI提問，立即獲得回答，體驗AI的強大功能。</p>
+        <h1>免費與Claude 4及其他AI對話</h1>
+        <p>選擇AI模型（如Claude 4、Llama 3.1、Gemini等），提問並即時獲得回答，體驗AI的強大功能。</p>
+        <select id="model-select">
+            <option value="claude-sonnet-4">Anthropic Claude Sonnet 4</option>
+            <option value="openrouter:meta-llama/llama-3.1-8b-instruct">Meta Llama 3.1 (8B)</option>
+            <option value="openrouter:anthropic/claude-3.5-sonnet">Anthropic Claude 3.5 Sonnet</option>
+            <option value="openrouter:mistralai/mistral-7b-instruct">Mistral 7B</option>
+            <option value="openrouter:google/gemini-pro-1.5">Google Gemini Pro 1.5</option>
+            <option value="openrouter:openai/gpt-4o-mini">OpenAI GPT-4o Mini</option>
+        </select>
+        <button id="toggle-theme">切換黑白模式</button>
         <div id="chat-box"></div>
         <div id="input-area">
             <input type="text" id="user-input" placeholder="在此輸入您的訊息...">
             <button id="send-button">發送</button>
         </div>
+        <div id="loading">正在生成回應...</div>
     </div>
 
     <!-- Infolinks 廣告（對話框下方） -->
@@ -134,55 +211,6 @@
 
     <script src="https://js.puter.com/v2/"></script>
     <script>
-        document.getElementById('send-button').addEventListener('click', sendMessage);
-        document.getElementById('user-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        async function sendMessage() {
-            const userInput = document.getElementById('user-input');
-            const sendButton = document.getElementById('send-button');
-            const message = userInput.value.trim();
-            if (message === '') return;
-
-            // 禁用發送按鈕
-            sendButton.disabled = true;
-
-            // 顯示使用者訊息
-            const chatBox = document.getElementById('chat-box');
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.className = 'message user';
-            userMessageDiv.textContent = message;
-            chatBox.appendChild(userMessageDiv);
-            userInput.value = '';
-
-            // 滾動到底部
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // 創建AI訊息容器
-            const aiMessageDiv = document.createElement('div');
-            aiMessageDiv.className = 'message ai';
-            chatBox.appendChild(aiMessageDiv);
-
-            try {
-                const response = await puter.ai.chat(
-                    message,
-                    { model: 'claude-opus-4', stream: true }
-                );
-
-                for await (const part of response) {
-                    aiMessageDiv.textContent += part?.text || '';
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                }
-            } catch (error) {
-                aiMessageDiv.textContent = '錯誤：' + error.message;
-            } finally {
-                // 重新啟用發送按鈕
-                sendButton.disabled = false;
-            }
-        }
-    </script>
-</body>
-</html>
+        // 主題切換
+        const toggleThemeButton = document.getElementById('toggle-theme');
+        toggleThemeButton.addEvent
