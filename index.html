@@ -3,737 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>免費與Claude 4及其他AI對話</title>
-    <meta name="description" content="免費與Claude 4、GPT-4o、Gemini等AI互動，支援圖片識別、語音生成、圖片生成。">
-    <meta name="keywords" content="AI, claude 4, GPT-4, Gemini, 圖片識別, 語音生成, 圖片生成">
-    <style>
-        body {
-            background-color: white;
-            color: black;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            transition: all 0.3s ease;
-            display: flex;
-            min-height: 100vh;
-        }
-        body.dark-mode {
-            background-color: #1a1a1a;
-            color: white;
-        }
-        #navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background-color: #f8f9fa;
-            padding: 10px 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        body.dark-mode #navbar {
-            background-color: #2a2a2a;
-        }
-        #toggle-theme {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 24px;
-            padding: 8px;
-            transition: transform 0.3s ease;
-        }
-        #toggle-theme:hover {
-            transform: scale(1.1);
-        }
-        #navbar h2 {
-            margin: 0;
-            font-size: 18px;
-        }
-        #container {
-            display: flex;
-            width: 100%;
-            max-width: 1400px;
-            margin: 70px auto 20px;
-            gap: 20px;
-            padding: 0 10px;
-        }
-        #chat-container {
-            flex: 1;
-            padding: 20px;
-            background-color: white;
-            color: black;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-        body.dark-mode #chat-container {
-            background-color: #2a2a2a;
-            color: white;
-        }
-        .model-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        #model-category, #model-version {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: white;
-            min-width: 150px;
-        }
-        body.dark-mode #model-category, body.dark-mode #model-version {
-            background-color: #444;
-            color: white;
-            border-color: #666;
-        }
-        .function-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .function-btn {
-            padding: 8px 16px;
-            border: 1px solid #007bff;
-            background-color: transparent;
-            color: #007bff;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-        .function-btn:hover, .function-btn.active {
-            background-color: #007bff;
-            color: white;
-        }
-        body.dark-mode .function-btn {
-            border-color: #4a90e2;
-            color: #4a90e2;
-        }
-        body.dark-mode .function-btn:hover, body.dark-mode .function-btn.active {
-            background-color: #4a90e2;
-        }
-        #chat-box {
-            height: 60vh;
-            overflow-y: auto;
-            border: 1px solid #e0e0e0;
-            padding: 15px;
-            background-color: #fafafa;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-        body.dark-mode #chat-box {
-            background-color: #333;
-            border-color: #555;
-        }
-        .message {
-            margin: 15px 0;
-            padding: 12px 16px;
-            border-radius: 15px;
-            max-width: 80%;
-            word-wrap: break-word;
-            position: relative;
-        }
-        .user {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
-        .ai {
-            background-color: #f1f3f4;
-            color: #333;
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
-        }
-        body.dark-mode .ai {
-            background-color: #404040;
-            color: #e0e0e0;
-        }
-        .message img {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 8px;
-            margin: 5px 0;
-        }
-        .message audio {
-            margin: 5px 0;
-        }
-        #input-area {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .input-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        #user-input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s ease;
-        }
-        #user-input:focus {
-            border-color: #007bff;
-        }
-        body.dark-mode #user-input {
-            background-color: #444;
-            color: white;
-            border-color: #666;
-        }
-        #file-input {
-            display: none;
-        }
-        .file-btn, #send-button, #speak-button {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        .file-btn {
-            background-color: #28a745;
-            color: white;
-        }
-        .file-btn:hover {
-            background-color: #218838;
-        }
-        #send-button {
-            background-color: #007bff;
-            color: white;
-        }
-        #send-button:hover {
-            background-color: #0056b3;
-        }
-        #send-button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        #speak-button {
-            background-color: #6f42c1;
-            color: white;
-        }
-        #speak-button:hover {
-            background-color: #5a32a3;
-        }
-        .additional-options {
-            display: none;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .additional-options.show {
-            display: flex;
-        }
-        .option-input {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 15px;
-            font-size: 12px;
-        }
-        body.dark-mode .option-input {
-            background-color: #444;
-            color: white;
-            border-color: #666;
-        }
-        .ad-sidebar {
-            width: 160px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .ad-placeholder {
-            width: 160px;
-            height: 300px;
-            background-color: #f0f0f0;
-            border: 2px dashed #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #888;
-            text-align: center;
-            border-radius: 8px;
-        }
-        body.dark-mode .ad-placeholder {
-            background-color: #333;
-            border-color: #555;
-            color: #aaa;
-        }
-        #loading {
-            display: none;
-            margin-top: 10px;
-            color: #007bff;
-            text-align: center;
-            font-style: italic;
-        }
-        body.dark-mode #loading {
-            color: #4a90e2;
-        }
-        .preview-area {
-            display: none;
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-        }
-        body.dark-mode .preview-area {
-            background-color: #444;
-            border-color: #666;
-        }
-        .preview-image {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 5px;
-        }
-        @media (max-width: 768px) {
-            #container {
-                flex-direction: column;
-                margin: 70px 10px 20px;
-            }
-            .ad-sidebar {
-                width: 100%;
-                flex-direction: row;
-                justify-content: center;
-            }
-            .ad-placeholder {
-                width: 120px;
-                height: 200px;
-            }
-            .model-selector, .function-buttons {
-                flex-direction: column;
-            }
-            #model-category, #model-version {
-                min-width: unset;
-            }
-        }
-    </style>
+    <title>AI 互動平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div id="navbar">
-        <h2>🤖 AI 多功能助手</h2>
-        <button id="toggle-theme" title="切換黑白模式">🌙</button>
-    </div>
+<body class="bg-gray-100 font-sans">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-    <div id="container">
-        <div class="ad-sidebar left">
-            <!-- Google AdSense - 最推薦新手 -->
-            <div class="ad-placeholder">
-                <div style="font-size: 11px; color: #666;">
-                    <strong>Google AdSense</strong><br>
-                    最適合新手<br>
-                    自動優化收益<br>
-                    160x600
-                </div>
-            </div>
-            
-            <!-- Ezoic - AI驅動廣告 -->
-            <div class="ad-placeholder">
-                <div style="font-size: 11px; color: #666;">
-                    <strong>Ezoic</strong><br>
-                    AI智能廣告<br>
-                    提升收益30%+<br>
-                    160x300
-                </div>
-            </div>
-        </div>
-
-        <div id="chat-container">
-            <h1>🚀 免費 AI 多功能助手</h1>
-            <p>支援對話、圖片識別、語音生成、圖片生成等多種 AI 功能</p>
-            
-            <div class="model-selector">
-                <select id="model-category">
-                    <option value="">選擇 AI 模型類型</option>
-                    <option value="claude">🔥 Anthropic Claude</option>
-                    <option value="openai">⭐ OpenAI GPT</option>
-                    <option value="google">🌟 Google AI</option>
-                    <option value="meta">🦙 Meta Llama</option>
-                    <option value="mistral">🚀 Mistral AI</option>
-                    <option value="deepseek">🧠 DeepSeek</option>
-                    <option value="other">🔮 其他模型</option>
-                </select>
-                <select id="model-version" disabled>
-                    <option value="">請先選擇模型類型</option>
-                </select>
-            </div>
-
-            <div class="function-buttons">
-                <button class="function-btn active" data-function="chat">💬 對話</button>
-                <button class="function-btn" data-function="image-recognition">🖼️ 圖片識別</button>
-                <button class="function-btn" data-function="text-to-speech">🔊 語音生成</button>
-                <button class="function-btn" data-function="text-to-image">🎨 圖片生成</button>
-            </div>
-
-            <div id="chat-box"></div>
-            
-            <div class="preview-area" id="preview-area">
-                <p><strong>預覽：</strong></p>
-                <div id="preview-content"></div>
-            </div>
-
-            <div id="input-area">
-                <div class="input-row">
-                    <input type="file" id="file-input" accept="image/*" style="display: none;">
-                    <button class="file-btn" id="file-btn" style="display: none;">📎 選擇圖片</button>
-                    <input type="text" id="user-input" placeholder="在此輸入您的訊息...">
-                    <button id="send-button">發送</button>
-                    <button id="speak-button" style="display: none;">🎤 朗讀</button>
-                </div>
-                
-                <div class="additional-options" id="additional-options">
-                    <input type="text" id="tts-language" class="option-input" placeholder="語言 (如: zh-TW)" value="zh-TW">
-                    <input type="text" id="img-size" class="option-input" placeholder="圖片尺寸 (如: 512x512)" value="512x512">
-                    <input type="text" id="img-style" class="option-input" placeholder="圖片風格 (如: 寫實、卡通)">
-                </div>
-            </div>
-
-            <div id="loading">正在處理中...</div>
-        </div>
-
-        <div class="ad-sidebar right">
-            <!-- Media.net - Yahoo Bing廣告 -->
-            <div class="ad-placeholder">
-                <div style="font-size: 11px; color: #666;">
-                    <strong>Media.net</strong><br>
-                    Yahoo+Bing廣告<br>
-                    AdSense替代方案<br>
-                    160x600
-                </div>
-            </div>
-            
-            <!-- Monumetric - 高收益CPM -->
-            <div class="ad-placeholder">
-                <div style="font-size: 11px; color: #666;">
-                    <strong>Monumetric</strong><br>
-                    高CPM收益<br>
-                    需10K流量/月<br>
-                    160x300
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://js.puter.com/v2/"></script>
-    <script>
-        // 模型配置 - 基於 Puter.js 官方支援列表
-        const modelConfig = {
-            claude: {
-                'Claude Opus 4': 'claude-opus-4',
-                'Claude Sonnet 4': 'claude-sonnet-4',
-                'Claude 3.7 Sonnet': 'claude-3-7-sonnet',
-                'Claude 3.5 Sonnet': 'claude-3-5-sonnet'
+        const models = [
+            {
+                group: "OpenAI",
+                items: [
+                    { id: "gpt-4o-mini", name: "GPT-4o Mini (default)" },
+                    { id: "gpt-4o", name: "GPT-4o" },
+                    { id: "o1", name: "O1" },
+                    { id: "o1-mini", name: "O1 Mini" },
+                    { id: "o1-pro", name: "O1 Pro" },
+                    { id: "o3", name: "O3" },
+                    { id: "o3-mini", name: "O3 Mini" },
+                    { id: "o4-mini", name: "O4 Mini" },
+                    { id: "gpt-4.1", name: "GPT-4.1" },
+                    { id: "gpt-4.1-mini", name: "GPT-4.1 Mini" },
+                    { id: "gpt-4.1-nano", name: "GPT-4.1 Nano" },
+                    { id: "gpt-4.5-preview", name: "GPT-4.5 Preview" },
+                ],
             },
-            openai: {
-                'GPT-4o': 'gpt-4o',
-                'GPT-4o Mini': 'gpt-4o-mini',
-                'GPT-4.5 Preview': 'gpt-4.5-preview',
-                'GPT-4.1': 'gpt-4.1',
-                'GPT-4.1 Mini': 'gpt-4.1-mini',
-                'GPT-4.1 Nano': 'gpt-4.1-nano',
-                'o1': 'o1',
-                'o1 Mini': 'o1-mini',
-                'o1 Pro': 'o1-pro',
-                'o3': 'o3',
-                'o3 Mini': 'o3-mini',
-                'o4 Mini': 'o4-mini'
+            {
+                group: "Anthropic",
+                items: [
+                    { id: "claude-sonnet-4", name: "Claude Sonnet 4" },
+                    { id: "claude-opus-4", name: "Claude Opus 4" },
+                    { id: "claude-3-7-sonnet", name: "Claude 3.7 Sonnet" },
+                    { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet" },
+                ],
             },
-            google: {
-                'Gemini 2.0 Flash': 'gemini-2.0-flash',
-                'Gemini 1.5 Flash': 'gemini-1.5-flash',
-                'Gemma 2 27B': 'google/gemma-2-27b-it'
+            {
+                group: "DeepSeek",
+                items: [
+                    { id: "deepseek-chat", name: "DeepSeek Chat" },
+                    { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
+                ],
             },
-            meta: {
-                'Llama 3.1 405B Turbo': 'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo',
-                'Llama 3.1 70B Turbo': 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
-                'Llama 3.1 8B Turbo': 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo'
+            {
+                group: "Google",
+                items: [
+                    { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
+                    { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
+                    { id: "google/gemma-2-27b-it", name: "Gemma 2 27B IT" },
+                ],
             },
-            mistral: {
-                'Mistral Large Latest': 'mistral-large-latest',
-                'Pixtral Large Latest': 'pixtral-large-latest',
-                'Codestral Latest': 'codestral-latest'
+            {
+                group: "Meta Llama",
+                items: [
+                    { id: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", name: "Llama 3.1 8B Instruct Turbo" },
+                    { id: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo", name: "Llama 3.1 70B Instruct Turbo" },
+                    { id: "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo", name: "Llama 3.1 405B Instruct Turbo" },
+                ],
             },
-            deepseek: {
-                'DeepSeek Chat': 'deepseek-chat',
-                'DeepSeek Reasoner': 'deepseek-reasoner'
+            {
+                group: "Mistral",
+                items: [
+                    { id: "mistral-large-latest", name: "Mistral Large Latest" },
+                    { id: "pixtral-large-latest", name: "Pixtral Large Latest" },
+                    { id: "codestral-latest", name: "Codestral Latest" },
+                ],
             },
-            other: {
-                'Grok Beta': 'grok-beta'
-            }
-        };
+            {
+                group: "xAI",
+                items: [
+                    { id: "grok-beta", name: "Grok Beta" },
+                ],
+            },
+        ];
 
-        let currentFunction = 'chat';
-        let lastAiResponse = '';
+        function App() {
+            const [activeTab, setActiveTab] = useState("chat");
+            const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
+            const [inputText, setInputText] = useState("");
+            const [imageFile, setImageFile] = useState(null);
+            const [response, setResponse] = useState("");
+            const [isLoading, setIsLoading] = useState(false);
+            const [voice, setVoice] = useState("en-US-Wavenet-A");
+            const [language, setLanguage] = useState("en-US");
+            const [pitch, setPitch] = useState(0);
+            const [speakingRate, setSpeakingRate] = useState(1);
 
-        // DOM 元素
-        const elements = {
-            toggleTheme: document.getElementById('toggle-theme'),
-            modelCategory: document.getElementById('model-category'),
-            modelVersion: document.getElementById('model-version'),
-            functionBtns: document.querySelectorAll('.function-btn'),
-            chatBox: document.getElementById('chat-box'),
-            userInput: document.getElementById('user-input'),
-            sendButton: document.getElementById('send-button'),
-            speakButton: document.getElementById('speak-button'),
-            fileBtn: document.getElementById('file-btn'),
-            fileInput: document.getElementById('file-input'),
-            loading: document.getElementById('loading'),
-            previewArea: document.getElementById('preview-area'),
-            previewContent: document.getElementById('preview-content'),
-            additionalOptions: document.getElementById('additional-options'),
-            ttsLanguage: document.getElementById('tts-language'),
-            imgSize: document.getElementById('img-size'),
-            imgStyle: document.getElementById('img-style')
-        };
-
-        // 主題切換
-        elements.toggleTheme.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            elements.toggleTheme.textContent = isDark ? '☀️' : '🌙';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        });
-
-        // 載入保存的主題
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-            elements.toggleTheme.textContent = '☀️';
-        }
-
-        // 模型選擇
-        elements.modelCategory.addEventListener('change', function() {
-            const category = this.value;
-            elements.modelVersion.innerHTML = '<option value="">請選擇具體模型</option>';
-            
-            if (category && modelConfig[category]) {
-                elements.modelVersion.disabled = false;
-                Object.entries(modelConfig[category]).forEach(([name, value]) => {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = name;
-                    elements.modelVersion.appendChild(option);
-                });
-            } else {
-                elements.modelVersion.disabled = true;
-            }
-        });
-
-        // 功能切換
-        elements.functionBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                elements.functionBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentFunction = this.dataset.function;
-                updateUI();
-            });
-        });
-
-        // 更新UI
-        function updateUI() {
-            const showFileBtn = currentFunction === 'image-recognition';
-            const showSpeakBtn = currentFunction === 'text-to-speech';
-            const showOptions = currentFunction === 'text-to-speech' || currentFunction === 'text-to-image';
-            
-            elements.fileBtn.style.display = showFileBtn ? 'block' : 'none';
-            elements.speakButton.style.display = showSpeakBtn ? 'block' : 'none';
-            elements.additionalOptions.classList.toggle('show', showOptions);
-            
-            // 更新輸入框提示
-            const placeholders = {
-                'chat': '在此輸入您的訊息...',
-                'image-recognition': '選擇圖片並描述您想了解什麼...',
-                'text-to-speech': '輸入要轉換為語音的文字...',
-                'text-to-image': '描述您想生成的圖片...'
+            const handleTabChange = (tab) => {
+                setActiveTab(tab);
+                setResponse("");
+                setImageFile(null);
+                setInputText("");
             };
-            elements.userInput.placeholder = placeholders[currentFunction];
-        }
 
-        // 文件選擇
-        elements.fileBtn.addEventListener('click', () => elements.fileInput.click());
-        elements.fileInput.addEventListener('change', handleFileSelect);
-
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    elements.previewContent.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="預覽圖片">`;
-                    elements.previewArea.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // 發送訊息
-        elements.sendButton.addEventListener('click', sendMessage);
-        elements.userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        // 語音朗讀
-        elements.speakButton.addEventListener('click', function() {
-            if (lastAiResponse) {
-                speakText(lastAiResponse);
-            } else if (elements.userInput.value.trim()) {
-                speakText(elements.userInput.value.trim());
-            }
-        });
-
-        async function sendMessage() {
-            const message = elements.userInput.value.trim();
-            const selectedModel = elements.modelVersion.value;
-
-            if (!message && currentFunction !== 'image-recognition') return;
-            if (!selectedModel) {
-                alert('請選擇 AI 模型');
-                return;
-            }
-
-            setLoading(true);
-            addMessage(message, 'user');
-            elements.userInput.value = '';
-
-            try {
-                let response;
-                switch (currentFunction) {
-                    case 'chat':
-                        response = await handleChat(message, selectedModel);
-                        break;
-                    case 'image-recognition':
-                        response = await handleImageRecognition(message, selectedModel);
-                        break;
-                    case 'text-to-speech':
-                        response = await handleTextToSpeech(message);
-                        break;
-                    case 'text-to-image':
-                        response = await handleTextToImage(message);
-                        break;
+            const handleImageDrop = (e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith("image/")) {
+                    setImageFile(file);
+                    setResponse(`已上傳圖片: ${file.name}`);
                 }
-                
-                if (response) {
-                    addMessage(response.text || response, 'ai', response.media);
-                    if (response.text) lastAiResponse = response.text;
+            };
+
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file && file.type.startsWith("image/")) {
+                    setImageFile(file);
+                    setResponse(`已上傳圖片: ${file.name}`);
                 }
-            } catch (error) {
-                addMessage('錯誤：' + error.message, 'ai');
-                console.error('AI Error:', error);
-            } finally {
-                setLoading(false);
-                elements.previewArea.style.display = 'none';
-            }
-        }
-
-        async function handleChat(message, model) {
-            const response = await puter.ai.chat(message, { model: model, stream: false });
-            return { text: response };
-        }
-
-        async function handleImageRecognition(message, model) {
-            const fileInput = elements.fileInput;
-            if (!fileInput.files[0]) {
-                throw new Error('請先選擇圖片');
-            }
-
-            // 使用 img2txt 進行 OCR
-            const ocrResult = await puter.ai.img2txt(fileInput.files[0]);
-            
-            // 結合 OCR 結果和用戶問題，使用 chat API
-            const fullPrompt = `圖片中的文字內容：${ocrResult}\n\n用戶問題：${message}`;
-            const response = await puter.ai.chat(fullPrompt, { model: model, stream: false });
-            
-            return { 
-                text: `圖片識別結果：\n\n提取的文字：${ocrResult}\n\n分析回答：${response}`,
-                media: fileInput.files[0]
             };
-        }
 
-        async function handleTextToSpeech(text) {
-            const language = elements.ttsLanguage.value || 'zh-TW';
-            const audio = await puter.ai.txt2speech(text, language);
-            return {
-                text: `已生成語音 (${language})`,
-                media: audio
-            };
-        }
-
-        async function handleTextToImage(prompt) {
-            const size = elements.imgSize.value || '512x512';
-            const style = elements.imgStyle.value;
-            const fullPrompt = style ? `${prompt}, ${style} style` : prompt;
-            
-            const imageBlob = await puter.ai.txt2img(fullPrompt, size);
-            return {
-                text: `已生成圖片：${prompt}`,
-                media: imageBlob
-            };
-        }
-
-        async function speakText(text) {
-            try {
-                const language = elements.ttsLanguage.value || 'zh-TW';
-                const audio = await puter.ai.txt2speech(text, language);
-                audio.play();
-            } catch (error) {
-                console.error('語音生成錯誤:', error);
-                alert('語音生成失敗：' + error.message);
-            }
-        }
-
-        function addMessage(content, sender, media = null) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            
-            let html = '';
-            if (media) {
-                if (media instanceof File && media.type.startsWith('image/')) {
-                    // 圖片文件
-                    const url = URL.createObjectURL(media);
-                    html += `<img src="${url}" alt="上傳的圖片" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px 0;">`;
-                } else if (media instanceof Blob) {
-                    if (media.type && media.type.startsWith('image/')) {
-                        // 生成的圖片
-                        const url = URL.createObjectURL(media);
-                        html += `<img src="${url}" alt="生成的圖片" style="max-width: 300px; max-height: 300px; border-radius: 8px; margin: 5px 0;">`;
-                    } else {
-                        // 音頻
-                        const url = URL.createObjectURL(media);
-                        html += `<audio controls style="margin: 5px 0;"><source src="${url}" type="audio/mpeg">您的瀏覽器不支援音頻播放。</audio>`;
+            const handleSubmit = async () => {
+                setIsLoading(true);
+                setResponse("");
+                try {
+                    if (activeTab === "chat") {
+                        // Simulated chat API call
+                        setResponse(`來自 ${selectedModel} 的回應: ${inputText}`);
+                    } else if (activeTab === "image-recognition") {
+                        if (imageFile) {
+                            // Simulated image recognition API call
+                            setResponse(`圖片辨識結果 (${selectedModel}): 圖片內容描述...`);
+                        } else {
+                            setResponse("請上傳圖片以進行辨識");
+                        }
+                    } else if (activeTab === "image-generation") {
+                        // Simulated image generation API call
+                        setResponse(`已生成圖片 (${selectedModel}): 圖片描述 - ${inputText}`);
+                    } else if (activeTab === "text-to-speech") {
+                        // Simulated text-to-speech API call
+                        setResponse(`已生成語音 (${selectedModel}): 語音輸出 - ${inputText}, 語音: ${voice}, 語言: ${language}, 音高: ${pitch}, 語速: ${speakingRate}`);
                     }
+                } catch (error) {
+                    setResponse("發生錯誤，請稍後再試");
+                } finally {
+                    setIsLoading(false);
                 }
-            }
-            
-            html += `<div>${content}</div>`;
-            messageDiv.innerHTML = html;
-            
-            elements.chatBox.appendChild(messageDiv);
-            elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <header className="bg-white shadow p-4 flex justify-between items-center">
+                        <div className="text-2xl font-bold">☀️ AI 互動平台</div>
+                    </header>
+                    <main className="flex-grow flex flex-col items-center p-4">
+                        <div className="w-full max-w-2xl">
+                            <div className="flex border-b border-gray-300 mb-4">
+                                <button
+                                    className={`px-4 py-2 ${activeTab === "chat" ? "border-b-2 border-blue-500" : ""}`}
+                                    onClick={() => handleTabChange("chat")}
+                                >
+                                    聊天
+                                </button>
+                                <button
+                                    className={`px-4 py-2 ${activeTab === "image-recognition" ? "border-b-2 border-blue-500" : ""}`}
+                                    onClick={() => handleTabChange("image-recognition")}
+                                >
+                                    圖片辨識
+                                </button>
+                                <button
+                                    className={`px-4 py-2 ${activeTab === "image-generation" ? "border-b-2 border-blue-500" : ""}`}
+                                    onClick={() => handleTabChange("image-generation")}
+                                >
+                                    圖片生成
+                                </button>
+                                <button
+                                    className={`px-4 py-2 ${activeTab === "text-to-speech" ? "border-b-2 border-blue-500" : ""}`}
+                                    onClick={() => handleTabChange("text-to-speech")}
+                                >
+                                    文字轉語音
+                                </button>
+                            </div>
+                            <div className="bg-white p-4 rounded-lg shadow">
+                                <select
+                                    className="w-full p-2 mb-4 border rounded"
+                                    value={selectedModel}
+                                    onChange={(e) => setSelectedModel(e.target.value)}
+                                >
+                                    {models.map((group) => (
+                                        <optgroup key={group.group} label={group.group}>
+                                            {group.items.map((model) => (
+                                                <option key={model.id} value={model.id}>
+                                                    {model.name}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    ))}
+                                </select>
+                                {activeTab === "text-to-speech" && (
+                                    <div className="mb-4">
+                                        <label className="block mb-2">語音選擇:</label>
+                                        <select
+                                            className="w-full p-2 border rounded"
+                                            value={voice}
+                                            onChange={(e) => setVoice(e.target.value)}
+                                        >
+                                            <option value="en-US-Wavenet-A">en-US-Wavenet-A</option>
+                                            <option value="en-US-Wavenet-B">en-US-Wavenet-B</option>
+                                            <option value="zh-TW-Wavenet-A">zh-TW-Wavenet-A</option>
+                                            {/* Add more voices as needed */}
+                                        </select>
+                                        <label className="block mt-4 mb-2">語言:</label>
+                                        <select
+                                            className="w-full p-2 border rounded"
+                                            value={language}
+                                            onChange={(e) => setLanguage(e.target.value)}
+                                        >
+                                            <option value="en-US">英語 (美國)</option>
+                                            <option value="zh-TW">中文 (台灣)</option>
+                                            {/* Add more languages as needed */}
+                                        </select>
+                                        <label className="block mt-4 mb-2">音高: {pitch}</label>
+                                        <input
+                                            type="range"
+                                            min="-20"
+                                            max="20"
+                                            value={pitch}
+                                            onChange={(e) => setPitch(e.target.value)}
+                                            className="w-full"
+                                        />
+                                        <label className="block mt-4 mb-2">語速: {speakingRate}</label>
+                                        <input
+                                            type="range"
+                                            min="0.25"
+                                            max="4"
+                                            step="0.25"
+                                            value={speakingRate}
+                                            onChange={(e) => setSpeakingRate(e.target.value)}
+                                            className="w-full"
+                                        />
+                                    </div>
+                                )}
+                                <div
+                                    className="border-2 border-dashed p-4 mb-4"
+                                    onDrop={handleImageDrop}
+                                    onDragOver={(e) => e.preventDefault()}
+                                >
+                                    <textarea
+                                        className="w-full p-2 border rounded"
+                                        rows="4"
+                                        placeholder={
+                                            activeTab === "image-recognition"
+                                                ? "拖曳圖片至此或輸入問題"
+                                                : "輸入您的問題或描述..."
+                                        }
+                                        value={inputText}
+                                        onChange={(e) => setInputText(e.target.value)}
+                                        disabled={activeTab === "image-recognition" && imageFile}
+                                    ></textarea>
+                                    {activeTab === "image-recognition" && (
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="mt-2"
+                                            onChange={handleImageUpload}
+                                        />
+                                    )}
+                                </div>
+                                <button
+                                    className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                                    onClick={handleSubmit}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? "正在生成..." : "發送"}
+                                </button>
+                                {response && (
+                                    <div className="mt-4 p-4 bg-gray-100 rounded">
+                                        {response}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </main>
+                    <footer className="bg-white p-4 text-center">
+                        <p>© 2025 AI 互動平台</p>
+                    </footer>
+                </div>
+            );
         }
 
-        function setLoading(isLoading) {
-            elements.sendButton.disabled = isLoading;
-            elements.loading.style.display = isLoading ? 'block' : 'none';
-            if (isLoading) {
-                elements.sendButton.textContent = '處理中...';
-            } else {
-                elements.sendButton.textContent = '發送';
-            }
-        }
-
-        // 初始化
-        updateUI();
-        addMessage('歡迎使用 AI 多功能助手！請選擇模型和功能開始使用。', 'ai');
+        ReactDOM.render(<App />, document.getElementById("root"));
     </script>
 </body>
 </html>
