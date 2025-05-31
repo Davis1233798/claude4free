@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>免費與Claude 4 AI對話</title>
+    <meta name="description" content="免費與Claude 4 AI互動，立即提問並獲得即時回答。">
+    <meta name="keywords" content="AI, claude 4, claude 4 free, claude free">
+    <style>
+        #chat-container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            color: black;
+        }
+        #chat-box {
+            height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 70%;
+        }
+        .user {
+            text-align: left;
+            background-color: #e6f7ff;
+            margin-right: auto;
+        }
+        .ai {
+            text-align: right;
+            background-color: #f0f0f0;
+            margin-left: auto;
+        }
+        #input-area {
+            display: flex;
+            margin-top: 10px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #send-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #send-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .ad-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Google AdSense 廣告（頂部） -->
+    <div class="ad-container">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+             crossorigin="anonymous"></script>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="YYYYYYYYYY"
+             data-ad-format="auto"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <!-- LINE Ads 橫幅占位符（頂部） -->
+    <div class="ad-container">
+        <div style="width: 320px; height: 100px; background-color: #ddd; display: inline-block;">
+            LINE Ads 橫幅廣告占位符（請在LINE Ads平台獲取代碼）
+        </div>
+    </div>
+
+    <div id="chat-container">
+        <h1>免費與Claude 4 AI對話</h1>
+        <p>向Claude 4 AI提問，立即獲得回答，體驗AI的強大功能。</p>
+        <div id="chat-box"></div>
+        <div id="input-area">
+            <input type="text" id="user-input" placeholder="在此輸入您的訊息...">
+            <button id="send-button">發送</button>
+        </div>
+    </div>
+
+    <!-- Infolinks 廣告（對話框下方） -->
+    <div class="ad-container">
+        <script type="text/javascript">
+            var infolinks_pid = YOUR_INFOLINKS_PID; // 替換為您的Infolinks PID
+            var infolinks_wsid = YOUR_INFOLINKS_WSID; // 替換為您的Infolinks WSID
+        </script>
+        <script type="text/javascript" src="https://resources.infolinks.com/js/infolinks_main.js"></script>
+    </div>
+
+    <!-- PropellerAds 廣告（頁面底部） -->
+    <div class="ad-container">
+        <script type="text/javascript">
+            var propeller_id = "YOUR_PROPELLERADS_ID"; // 替換為您的PropellerAds ID
+            (function() {
+                var ad = document.createElement('script');
+                ad.src = '//a.propelmedia.com/' + propeller_id + '.js';
+                ad.async = true;
+                document.body.appendChild(ad);
+            })();
+        </script>
+    </div>
+
+    <!-- Media.net 廣告（頁面底部） -->
+    <div class="ad-container">
+        <script type="text/javascript">
+            (function() {
+                var mn = document.createElement('script');
+                mn.type = 'text/javascript';
+                mn.async = true;
+                mn.src = '//contextual.media.net/nmedianet.js?cid=YOUR_MEDIA_NET_CID'; // 替換為您的Media.net CID
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(mn, s);
+            })();
+        </script>
+    </div>
+
+    <script src="https://js.puter.com/v2/"></script>
+    <script>
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            // 禁用發送按鈕
+            sendButton.disabled = true;
+
+            // 顯示使用者訊息
+            const chatBox = document.getElementById('chat-box');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user';
+            userMessageDiv.textContent = message;
+            chatBox.appendChild(userMessageDiv);
+            userInput.value = '';
+
+            // 滾動到底部
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 創建AI訊息容器
+            const aiMessageDiv = document.createElement('div');
+            aiMessageDiv.className = 'message ai';
+            chatBox.appendChild(aiMessageDiv);
+
+            try {
+                const response = await puter.ai.chat(
+                    message,
+                    { model: 'claude-sonnet-4', stream: true }
+                );
+
+                for await (const part of response) {
+                    aiMessageDiv.textContent += part?.text || '';
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            } catch (error) {
+                aiMessageDiv.textContent = '錯誤：' + error.message;
+            } finally {
+                // 重新啟用發送按鈕
+                sendButton.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
