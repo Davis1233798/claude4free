@@ -1,12 +1,32 @@
 <html>
 <body>
+    <button id="play">生成並下載語音</button>
     <script src="https://js.puter.com/v2/"></script>
-    <button id="play">Speak!</button>
     <script>
-        document.getElementById('play').addEventListener('click', ()=>{
-            puter.ai.txt2speech(`Hello world! Puter is pretty amazing, don't you agree?`).then((audio)=>{
-                audio.play();
-            });
+        document.getElementById('play').addEventListener('click', async () => {
+            try {
+                // 使用 txt2speech 生成語音，指定文字和語言
+                const mp3Stream = await puter.ai.txt2speech('Hello world!', 'en-US', false);
+
+                // 將 MP3 數據流轉換為 Blob
+                const blob = new Blob([mp3Stream], { type: 'audio/mp3' });
+
+                // 創建一個臨時 URL 用於下載
+                const url = window.URL.createObjectURL(blob);
+
+                // 創建一個隱藏的 <a> 元素來觸發下載
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'speech.mp3'; // 設置下載檔案名稱
+                document.body.appendChild(a);
+                a.click();
+
+                // 清理：移除臨時元素並釋放 URL
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('生成語音失敗:', error);
+            }
         });
     </script>
 </body>
