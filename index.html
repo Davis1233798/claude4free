@@ -329,15 +329,24 @@
 
     <div id="container">
         <div class="ad-sidebar left">
+            <!-- Google AdSense - 最推薦新手 -->
             <div class="ad-placeholder">
-                廣告區域<br>
-                AdSense<br>
-                160x300
+                <div style="font-size: 11px; color: #666;">
+                    <strong>Google AdSense</strong><br>
+                    最適合新手<br>
+                    自動優化收益<br>
+                    160x600
+                </div>
             </div>
+            
+            <!-- Ezoic - AI驅動廣告 -->
             <div class="ad-placeholder">
-                廣告區域<br>
-                Infolinks<br>
-                160x250
+                <div style="font-size: 11px; color: #666;">
+                    <strong>Ezoic</strong><br>
+                    AI智能廣告<br>
+                    提升收益30%+<br>
+                    160x300
+                </div>
             </div>
         </div>
 
@@ -348,12 +357,13 @@
             <div class="model-selector">
                 <select id="model-category">
                     <option value="">選擇 AI 模型類型</option>
-                    <option value="claude">Anthropic Claude</option>
-                    <option value="openai">OpenAI GPT</option>
-                    <option value="google">Google Gemini</option>
-                    <option value="meta">Meta Llama</option>
-                    <option value="mistral">Mistral AI</option>
-                    <option value="deepseek">DeepSeek</option>
+                    <option value="claude">🔥 Anthropic Claude</option>
+                    <option value="openai">⭐ OpenAI GPT</option>
+                    <option value="google">🌟 Google AI</option>
+                    <option value="meta">🦙 Meta Llama</option>
+                    <option value="mistral">🚀 Mistral AI</option>
+                    <option value="deepseek">🧠 DeepSeek</option>
+                    <option value="other">🔮 其他模型</option>
                 </select>
                 <select id="model-version" disabled>
                     <option value="">請先選擇模型類型</option>
@@ -394,59 +404,73 @@
         </div>
 
         <div class="ad-sidebar right">
+            <!-- Media.net - Yahoo Bing廣告 -->
             <div class="ad-placeholder">
-                廣告區域<br>
-                PropellerAds<br>
-                160x300
+                <div style="font-size: 11px; color: #666;">
+                    <strong>Media.net</strong><br>
+                    Yahoo+Bing廣告<br>
+                    AdSense替代方案<br>
+                    160x600
+                </div>
             </div>
+            
+            <!-- Monumetric - 高收益CPM -->
             <div class="ad-placeholder">
-                廣告區域<br>
-                Media.net<br>
-                160x250
+                <div style="font-size: 11px; color: #666;">
+                    <strong>Monumetric</strong><br>
+                    高CPM收益<br>
+                    需10K流量/月<br>
+                    160x300
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://js.puter.com/v2/"></script>
     <script>
-        // 模型配置
+        // 模型配置 - 基於 Puter.js 官方支援列表
         const modelConfig = {
             claude: {
-                'Claude 3.5 Sonnet': 'claude-3.5-sonnet',
+                'Claude Opus 4': 'claude-opus-4',
                 'Claude Sonnet 4': 'claude-sonnet-4',
-                'Claude 3.5 Haiku': 'claude-3.5-haiku'
+                'Claude 3.7 Sonnet': 'claude-3-7-sonnet',
+                'Claude 3.5 Sonnet': 'claude-3-5-sonnet'
             },
             openai: {
                 'GPT-4o': 'gpt-4o',
                 'GPT-4o Mini': 'gpt-4o-mini',
-                'GPT-4 Turbo': 'gpt-4-turbo',
-                'GPT-3.5 Turbo': 'gpt-3.5-turbo',
-                'o1-preview': 'o1-preview',
-                'o1-mini': 'o1-mini',
-                'o3-mini': 'o3-mini'
+                'GPT-4.5 Preview': 'gpt-4.5-preview',
+                'GPT-4.1': 'gpt-4.1',
+                'GPT-4.1 Mini': 'gpt-4.1-mini',
+                'GPT-4.1 Nano': 'gpt-4.1-nano',
+                'o1': 'o1',
+                'o1 Mini': 'o1-mini',
+                'o1 Pro': 'o1-pro',
+                'o3': 'o3',
+                'o3 Mini': 'o3-mini',
+                'o4 Mini': 'o4-mini'
             },
             google: {
-                'Gemini Pro 1.5': 'gemini-1.5-pro',
-                'Gemini Flash 1.5': 'gemini-1.5-flash',
-                'Gemini Pro': 'gemini-pro'
+                'Gemini 2.0 Flash': 'gemini-2.0-flash',
+                'Gemini 1.5 Flash': 'gemini-1.5-flash',
+                'Gemma 2 27B': 'google/gemma-2-27b-it'
             },
             meta: {
-                'Llama 3.1 405B': 'llama-3.1-405b-instruct',
-                'Llama 3.1 70B': 'llama-3.1-70b-instruct',
-                'Llama 3.1 8B': 'llama-3.1-8b-instruct',
-                'Llama 3.2 90B': 'llama-3.2-90b-instruct',
-                'Llama 3.2 11B': 'llama-3.2-11b-instruct'
+                'Llama 3.1 405B Turbo': 'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo',
+                'Llama 3.1 70B Turbo': 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+                'Llama 3.1 8B Turbo': 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo'
             },
             mistral: {
-                'Mistral Large': 'mistral-large',
-                'Mistral 7B': 'mistral-7b-instruct',
-                'Mixtral 8x7B': 'mixtral-8x7b-instruct',
-                'Mixtral 8x22B': 'mixtral-8x22b-instruct'
+                'Mistral Large Latest': 'mistral-large-latest',
+                'Pixtral Large Latest': 'pixtral-large-latest',
+                'Codestral Latest': 'codestral-latest'
             },
             deepseek: {
                 'DeepSeek Chat': 'deepseek-chat',
-                'DeepSeek Reasoner': 'deepseek-reasoner',
-                'DeepSeek Coder': 'deepseek-coder'
+                'DeepSeek Reasoner': 'deepseek-reasoner'
+            },
+            other: {
+                'Grok Beta': 'grok-beta'
             }
         };
 
