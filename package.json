@@ -11,8 +11,8 @@
     "test:report": "playwright show-report",
     "dev": "http-server . -p 8080 -o --cors",
     "build": "echo '純前端應用，無需構建步驟'",
-    "deploy:check": "echo '檢查部署準備...' && ls -la index.html",
-    "lint:html": "echo '檢查 HTML 語法...' && grep -q 'puter' index.html && echo '✅ HTML 檢查通過'",
+    "deploy:check": "echo '檢查部署準備...' && dir index.html",
+    "lint:html": "echo '檢查 HTML 語法...' && findstr /C:puter index.html >nul && echo '✅ HTML 檢查通過'",
     "validate": "npm run lint:html && echo '✅ 所有驗證通過'",
     "ci": "npm run validate && npm run test"
   },
