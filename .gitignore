@@ -1,0 +1,103 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Wrangler related files
+.wrangler/
+wrangler.toml.backup
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.test
+*.pem
+*.key
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Build outputs and temporary files
+dist/
+build/
+tmp/
+temp/
+*.tmp
+*.temp
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage and test reports
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+*.tgz
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Large media files (>10MB)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
+*.m4v
+
+# Large archive files
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.tar.bz2
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Documentation build
+docs/_build/
+
+# Cloudflare specific
+.dev.vars
+
+# Git hooks
+.git/hooks/
+
+# Cursor IDE specific (excluding user rules)
+.cursor/logs/
+.cursor/workspaceStorage/
+.cursor/globalStorage/ 
