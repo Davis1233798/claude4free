@@ -614,7 +614,10 @@
             const savedTheme = localStorage.getItem('theme') || 'light';
             setTheme(savedTheme);
             
-            // 靜默檢測Puter連接狀態（後台運行）
+            // 初始假設Puter已連接，避免阻塞UI
+            appState.puterConnected = true;
+            
+            // 靜默檢測Puter連接狀態
             silentCheckPuterStatus();
             
             updateUI();
@@ -625,23 +628,36 @@
             try {
                 if (typeof puter === 'undefined') {
                     console.warn('Puter.js 未載入');
+                    appState.puterConnected = false;
+                    updateUI();
                     return;
                 }
                 
                 // 簡單測試Puter AI服務
                 await puter.ai.chat("Hello", { model: 'gpt-4o-mini' });
                 console.log('✅ Puter AI 服務連接正常');
+                appState.puterConnected = true;
             } catch (error) {
                 console.warn('⚠️ Puter AI 服務連接異常:', error.message);
+                appState.puterConnected = false;
             }
+            
+            // 更新UI狀態
+            updateUI();
+        }
+
+        // 設置主題
+        function setTheme(theme) {
+            appState.theme = theme;
+            document.body.setAttribute('theme', theme);
+            updateThemeIcon();
         }
 
         // 切換主題
         function toggleTheme() {
             appState.theme = appState.theme === 'light' ? 'dark' : 'light';
-            document.body.setAttribute('theme', appState.theme);
+            setTheme(appState.theme);
             localStorage.setItem('theme', appState.theme);
-            updateThemeIcon();
         }
 
         // 更新主題圖標
@@ -1155,6 +1171,11 @@
 
         // 頁面載入完成後初始化
         document.addEventListener('DOMContentLoaded', initApp);
+        
+        // Puter.js 載入完成後重新檢查狀態
+        window.addEventListener('load', function() {
+            setTimeout(silentCheckPuterStatus, 1000);
+        });
     </script>
 </body>
 </html>
