@@ -1,0 +1,44 @@
+{
+  "name": "claude4free-api-tests",
+  "version": "1.0.0",
+  "description": "Claude4Free API 服務器單元測試",
+  "main": "api-server.test.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-miniflare": "^2.14.2"
+  },
+  "jest": {
+    "testEnvironment": "miniflare",
+    "testMatch": [
+      "**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "../api-server.js"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "coverageDirectory": "coverage",
+    "verbose": true,
+    "setupFilesAfterEnv": ["<rootDir>/test-setup.js"]
+  },
+  "keywords": [
+    "api",
+    "cloudflare-workers",
+    "ai",
+    "testing",
+    "jest"
+  ],
+  "author": "Claude4Free Team",
+  "license": "MIT"
+} 

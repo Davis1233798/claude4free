@@ -347,6 +347,62 @@
                 font-size: 16px;
             }
         }
+        .connection-status {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            color: #856404;
+        }
+        .connection-status.show {
+            display: block;
+        }
+        body.dark-theme .connection-status {
+            background-color: #664d03;
+            border-color: #b8860b;
+            color: #fff3cd;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        .status-dot.offline {
+            background-color: #dc3545;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .retry-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s ease;
+        }
+        .retry-button:hover {
+            background-color: #0056b3;
+        }
+        body.dark-theme .retry-button {
+            background-color: #4a90e2;
+        }
+        body.dark-theme .retry-button:hover {
+            background-color: #357abd;
+        }
     </style>
 </head>
 <body>
@@ -470,8 +526,8 @@
             <form method="post" 
                   action-xhr="https://claude4free-api.davis1233798.workers.dev/api/chat" 
                   on="submit:AMP.setState({appState: {loading: true, error: ''}});
-                      submit-success:AMP.setState({appState: {loading: false}});
-                      submit-error:AMP.setState({appState: {loading: false, error: '發送失敗，請稍後再試'}})">
+                      submit-success:AMP.setState({appState: {loading: false, error: ''}});
+                      submit-error:AMP.setState({appState: {loading: false, error: event.response ? (event.response.error || '伺服器回應錯誤 (HTTP ' + event.response.status + ')') : '網路連接失敗，請檢查網路連接或稍後再試'}})">
                 <div class="input-row">
                     <input type="file" 
                            name="image" 
@@ -480,7 +536,8 @@
                            [class]="appState.currentFunction == 'image-recognition' ? '' : 'hidden'">
                     <button type="button" 
                             class="file-btn"
-                            [class]="appState.currentFunction == 'image-recognition' ? 'file-btn' : 'file-btn hidden'">📎 選擇圖片</button>
+                            [class]="appState.currentFunction == 'image-recognition' ? 'file-btn' : 'file-btn hidden'"
+                            on="tap:AMP.setState({appState: {error: ''}})">📎 選擇圖片</button>
                     
                     <input type="text" 
                            name="message"
@@ -488,14 +545,17 @@
                                          appState.currentFunction == 'image-recognition' ? '選擇圖片並描述您想了解什麼...' :
                                          appState.currentFunction == 'text-to-speech' ? '輸入要轉換為語音的文字...' :
                                          '描述您想生成的圖片...'"
-                           required>
+                           required
+                           on="input-debounced:AMP.setState({appState: {error: ''}})">
                     
                     <button type="submit" 
                             class="send-button"
-                            [disabled]="!appState.selectedModel || appState.loading">發送</button>
+                            [disabled]="!appState.selectedModel || appState.loading || (appState.currentFunction == 'image-recognition' && !document.querySelector('input[name=image]').files.length)"
+                            on="tap:AMP.setState({appState: {error: ''}})">發送</button>
                     <button type="button" 
                             class="speak-button"
-                            [class]="appState.currentFunction == 'text-to-speech' ? 'speak-button' : 'speak-button hidden'">🎤 朗讀</button>
+                            [class]="appState.currentFunction == 'text-to-speech' ? 'speak-button' : 'speak-button hidden'"
+                            on="tap:AMP.setState({appState: {error: ''}})">🎤 朗讀</button>
                 </div>
                 
                 <div class="additional-options" 
@@ -504,16 +564,19 @@
                            name="tts-language" 
                            class="option-input" 
                            placeholder="語言 (如: zh-TW)" 
-                           value="zh-TW">
+                           value="zh-TW"
+                           on="input-debounced:AMP.setState({appState: {error: ''}})">
                     <input type="text" 
                            name="img-size" 
                            class="option-input" 
                            placeholder="圖片尺寸 (如: 512x512)" 
-                           value="512x512">
+                           value="512x512"
+                           on="input-debounced:AMP.setState({appState: {error: ''}})">
                     <input type="text" 
                            name="img-style" 
                            class="option-input" 
-                           placeholder="圖片風格 (如: 寫實、卡通)">
+                           placeholder="圖片風格 (如: 寫實、卡通)"
+                           on="input-debounced:AMP.setState({appState: {error: ''}})">
                 </div>
                 
                 <input type="hidden" name="function" [value]="appState.currentFunction || 'chat'">
@@ -523,6 +586,19 @@
             <div class="loading" 
                  [class]="'loading ' + (appState.loading ? 'show' : '')"
                  id="loading">正在處理中...</div>
+                 
+            <!-- 連接狀態指示器 -->
+            <div class="connection-status" 
+                 [class]="'connection-status ' + (appState.error && appState.error.includes('網路連接失敗') ? 'show' : '')"
+                 id="connection-status">
+                <div class="status-indicator">
+                    <span class="status-dot offline"></span>
+                    <span class="status-text">網路連接異常，請檢查網路設定</span>
+                </div>
+                <button type="button" 
+                        class="retry-button"
+                        on="tap:AMP.setState({appState: {error: '', loading: false}})">重試</button>
+            </div>
         </div>
 
         <div class="ad-placeholder">
