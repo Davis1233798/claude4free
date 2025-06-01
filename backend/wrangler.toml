@@ -1,15 +1,30 @@
 name = "claude4free-api"
-main = "worker.js"
+main = "api-server.js"
 compatibility_date = "2024-01-15"
 
 [env.production]
 name = "claude4free-api"
 workers_dev = false
+routes = [
+  { pattern = "claude4free-api.davis1233798.workers.dev/*", zone_name = "davis1233798.workers.dev" }
+]
+
 [env.production.vars]
 ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://claude4free.pages.dev,https://claude4free-pages.davis1233798.workers.dev"
 
 [env.development]
 name = "claude4free-api-dev"
 workers_dev = true
+
 [env.development.vars]
-ENVIRONMENT = "development" 
+ENVIRONMENT = "development"
+ALLOWED_ORIGINS = "http://localhost:3000,http://127.0.0.1:3000,https://claude4free.pages.dev"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "your_kv_namespace_id"
+
+[[env.development.kv_namespaces]]
+binding = "CACHE"
+id = "your_dev_kv_namespace_id" 
