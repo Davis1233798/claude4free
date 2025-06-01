@@ -181,19 +181,8 @@ async function handleRequest(request, env) {
             const imgStyle = formData.get('img-style') || '';
             const imageFile = formData.get('image');
 
-            // 驗證必需參數
-            if (!message && chatFunction !== 'image-recognition') {
+            if (!message) {
                 return new Response(JSON.stringify({ error: '請提供訊息內容' }), {
-                    status: 400,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...corsHeaders(origin)
-                    }
-                });
-            }
-
-            if (!model) {
-                return new Response(JSON.stringify({ error: '請選擇AI模型' }), {
                     status: 400,
                     headers: {
                         'Content-Type': 'application/json',
