@@ -1,0 +1,23 @@
+[build]
+  # 指定前端文件目錄
+  publish = "frontend"
+  # 不需要構建命令，因為是靜態文件
+  command = ""
+
+[build.environment]
+  # 環境變量
+  NODE_VERSION = "18"
+
+[[redirects]]
+  # API 代理到 Cloudflare Workers
+  from = "/api/*"
+  to = "https://claude4free-api.davis1233798.workers.dev/api/:splat"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin" 

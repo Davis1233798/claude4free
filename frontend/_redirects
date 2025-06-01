@@ -1,0 +1,5 @@
+# SPA fallback
+/*    /index.html   200
+
+# API 代理（可選，如果需要代理到後端）
+/api/*  https://claude4free-api.davis1233798.workers.dev/api/:splat  200 

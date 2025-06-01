@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html ⚡ lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>免費與Claude 4及其他AI對話</title>
+    <meta name="description" content="免費與Claude 4、GPT-4o、Gemini等AI互動，支援圖片識別、語音生成、圖片生成。">
+    <meta name="keywords" content="AI, claude 4, GPT-4, Gemini, 圖片識別, 語音生成, 圖片生成, free chat gpt, free claude 4 opus, free claude opus, free claude, free claude 4, free claude 4 sonnet, free claude 3.7 opus, free gpt 4.5, free gpt 4.1, free grok, free mistral">
+    
+    <!-- AMP Required -->
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+    
+    <!-- AMP Components -->
+    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
+    <script async custom-element="amp-ad" src="https://cdn.ampproject.org/v0/amp-ad-0.1.js"></script>
+    <script async custom-element="amp-form" src="https://cdn.ampproject.org/v0/amp-form-0.1.js"></script>
+    <script async custom-element="amp-selector" src="https://cdn.ampproject.org/v0/amp-selector-0.1.js"></script>
+    <script async custom-element="amp-script" src="https://cdn.ampproject.org/v0/amp-script-0.1.js"></script>
+    <script async custom-element="amp-bind" src="https://cdn.ampproject.org/v0/amp-bind-0.1.js"></script>
+    
+    <!-- Google AdSense -->
+    <meta name="google-adsense-account" content="ca-pub-5692204516534246">
+    
+    <style amp-custom>
+        body {
+            background-color: white;
+            color: black;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            min-height: 100vh;
+        }
+        body[theme="dark"] {
+            background-color: #1a1a1a;
+            color: white;
+        }
+        #navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        body[theme="dark"] #navbar {
+            background-color: #2a2a2a;
+        }
+        #toggle-theme {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 8px;
+            transition: transform 0.3s ease;
+            margin-left: auto;
+            margin-right: 10px;
+        }
+        #toggle-theme:hover {
+            transform: scale(1.1);
+        }
+        #navbar h2 {
+            margin: 0;
+            font-size: 18px;
+            flex: 1;
+        }
+        #container {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            margin: 70px auto 20px;
+            gap: 20px;
+            padding: 0 10px;
+        }
+        #chat-container {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+            color: black;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        body[theme="dark"] #chat-container {
+            background-color: #2a2a2a;
+            color: white;
+        }
+        .model-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+            min-width: 150px;
+        }
+        body[theme="dark"] select {
+            background-color: #444;
+            color: white;
+            border-color: #666;
+        }
+        .function-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .function-btn {
+            padding: 8px 16px;
+            border: 1px solid #007bff;
+            background-color: transparent;
+            color: #007bff;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .function-btn[selected] {
+            background-color: #007bff;
+            color: white;
+        }
+        body[theme="dark"] .function-btn {
+            border-color: #4a90e2;
+            color: #4a90e2;
+        }
+        body[theme="dark"] .function-btn[selected] {
+            background-color: #4a90e2;
+        }
+        #chat-box {
+            height: 60vh;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        body[theme="dark"] #chat-box {
+            background-color: #333;
+            border-color: #555;
+        }
+        .message {
+            margin: 15px 0;
+            padding: 12px 16px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+            position: relative;
+        }
+        .user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .ai {
+            background-color: #f1f3f4;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        body[theme="dark"] .ai {
+            background-color: #404040;
+            color: #e0e0e0;
+        }
+        .message img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+        .message audio {
+            margin: 5px 0;
+        }
+        #input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus {
+            border-color: #007bff;
+        }
+        body[theme="dark"] input[type="text"] {
+            background-color: #444;
+            color: white;
+            border-color: #666;
+        }
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .file-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .file-btn:hover {
+            background-color: #218838;
+        }
+        .send-button {
+            background-color: #007bff;
+            color: white;
+        }
+        .send-button:hover {
+            background-color: #0056b3;
+        }
+        .speak-button {
+            background-color: #6f42c1;
+            color: white;
+        }
+        .speak-button:hover {
+            background-color: #5a32a3;
+        }
+        .additional-options {
+            display: none;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .additional-options[show] {
+            display: flex;
+        }
+        .option-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        body[theme="dark"] .option-input {
+            background-color: #444;
+            color: white;
+            border-color: #666;
+        }
+        .ad-sidebar {
+            width: 160px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .loading {
+            display: none;
+            margin-top: 10px;
+            color: #007bff;
+            text-align: center;
+            font-style: italic;
+        }
+        body[theme="dark"] .loading {
+            color: #4a90e2;
+        }
+        .preview-area {
+            display: none;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        body[theme="dark"] .preview-area {
+            background-color: #444;
+            border-color: #666;
+        }
+        .preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        @media (max-width: 768px) {
+            #container {
+                flex-direction: column;
+                margin: 70px 10px 20px;
+            }
+            .ad-sidebar {
+                width: 100%;
+                flex-direction: row;
+                justify-content: center;
+            }
+            .model-selector, .function-buttons {
+                flex-direction: column;
+            }
+            select {
+                min-width: unset;
+            }
+            #navbar h2 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body [class]="theme == 'dark' ? 'dark' : ''" [theme]="theme || 'light'">
+    <!-- AMP Auto Ads - 自動廣告 -->
+    <amp-auto-ads type="adsense" 
+                  data-ad-client="ca-pub-5692204516534246">
+    </amp-auto-ads>
+
+    <div id="navbar">
+        <h2>🤖 AI 多功能助手</h2>
+        <button id="toggle-theme" 
+                on="tap:AMP.setState({theme: theme == 'dark' ? 'light' : 'dark'})"
+                [text]="theme == 'dark' ? '☀️' : '🌙'"
+                title="切換黑白模式">🌙</button>
+    </div>
+
+    <div id="container" [class]="'container ' + (theme == 'dark' ? 'dark-theme' : '')">
+        <div class="ad-sidebar left">
+            <!-- 左側廣告 - 修正配置 -->
+            <amp-ad width="160" 
+                    height="600"
+                    type="adsense"
+                    data-ad-client="ca-pub-5692204516534246"
+                    data-ad-slot="1234567890"
+                    data-ad-format="auto"
+                    data-full-width-responsive="true">
+                <div fallback>
+                    <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                        廣告載入中...
+                    </div>
+                </div>
+            </amp-ad>
+            
+            <!-- 額外的展示廣告 -->
+            <amp-ad width="160" 
+                    height="300"
+                    type="adsense"
+                    data-ad-client="ca-pub-5692204516534246"
+                    data-ad-slot="2345678901"
+                    data-ad-format="auto"
+                    data-full-width-responsive="true">
+                <div fallback>
+                    <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                        廣告載入中...
+                    </div>
+                </div>
+            </amp-ad>
+        </div>
+
+        <div id="chat-container">
+            <h1>🚀 免費 AI 多功能助手</h1>
+            <p>支援對話、圖片識別、語音生成、圖片生成等多種 AI 功能</p>
+            
+            <div class="model-selector">
+                <amp-selector name="model-category" 
+                            layout="container"
+                            on="select:AMP.setState({selectedCategory: event.targetOption})">
+                    <select>
+                        <option value="">選擇 AI 模型類型</option>
+                        <option value="openai">⭐ OpenAI</option>
+                        <option value="anthropic">🔥 Anthropic</option>
+                        <option value="google">🌟 Google</option>
+                        <option value="meta">🦙 Meta</option>
+                        <option value="mistral">🚀 Mistral</option>
+                        <option value="deepseek">🧠 DeepSeek</option>
+                        <option value="other">🔮 其他</option>
+                    </select>
+                </amp-selector>
+                
+                <amp-selector name="model-version" 
+                            layout="container"
+                            [disabled]="!selectedCategory">
+                    <select [disabled]="!selectedCategory">
+                        <option value="">請先選擇模型類型</option>
+                        <option value="gpt-4o" [hidden]="selectedCategory != 'openai'">GPT-4o</option>
+                        <option value="gpt-4o-mini" [hidden]="selectedCategory != 'openai'">GPT-4o Mini</option>
+                        <option value="claude-3-5-sonnet" [hidden]="selectedCategory != 'anthropic'">Claude 3.5 Sonnet</option>
+                        <option value="claude-3-7-sonnet" [hidden]="selectedCategory != 'anthropic'">Claude 3.7 Sonnet</option>
+                        <option value="gemini-2.0-flash" [hidden]="selectedCategory != 'google'">Gemini 2.0 Flash</option>
+                        <option value="x-ai/grok-3-beta" [hidden]="selectedCategory != 'other'">Grok Beta</option>
+                    </select>
+                </amp-selector>
+            </div>
+
+            <amp-selector class="function-buttons" 
+                         layout="container"
+                         on="select:AMP.setState({currentFunction: event.targetOption})"
+                         single>
+                <button option="chat" selected class="function-btn">💬 對話</button>
+                <button option="image-recognition" class="function-btn">🖼️ 圖片識別</button>
+                <button option="text-to-speech" class="function-btn">🔊 語音生成</button>
+                <button option="text-to-image" class="function-btn">🎨 圖片生成</button>
+            </amp-selector>
+
+            <div id="chat-box">
+                <div class="message ai">
+                    <div>歡迎使用 AI 多功能助手！請選擇模型和功能開始使用。</div>
+                </div>
+            </div>
+            
+            <div class="preview-area" id="preview-area">
+                <p><strong>預覽：</strong></p>
+                <div id="preview-content"></div>
+            </div>
+
+            <form method="post" 
+                  action-xhr="https://claude4free-api.davis1233798.workers.dev/api/chat" 
+                  on="submit-success:chat.handleResponse;submit-error:chat.handleError">
+                <div class="input-row">
+                    <input type="file" 
+                           name="image" 
+                           accept="image/*" 
+                           class="hidden"
+                           [class]="currentFunction == 'image-recognition' ? '' : 'hidden'">
+                    <button type="button" 
+                            class="file-btn"
+                            [class]="currentFunction == 'image-recognition' ? 'file-btn' : 'file-btn hidden'">📎 選擇圖片</button>
+                    
+                    <input type="text" 
+                           name="message"
+                           [placeholder]="currentFunction == 'chat' ? '在此輸入您的訊息...' : 
+                                         currentFunction == 'image-recognition' ? '選擇圖片並描述您想了解什麼...' :
+                                         currentFunction == 'text-to-speech' ? '輸入要轉換為語音的文字...' :
+                                         '描述您想生成的圖片...'"
+                           required>
+                    
+                    <button type="submit" class="send-button">發送</button>
+                    <button type="button" 
+                            class="speak-button"
+                            [class]="currentFunction == 'text-to-speech' ? 'speak-button' : 'speak-button hidden'">🎤 朗讀</button>
+                </div>
+                
+                <div class="additional-options" 
+                     [show]="currentFunction == 'text-to-speech' || currentFunction == 'text-to-image'">
+                    <input type="text" 
+                           name="tts-language" 
+                           class="option-input" 
+                           placeholder="語言 (如: zh-TW)" 
+                           value="zh-TW">
+                    <input type="text" 
+                           name="img-size" 
+                           class="option-input" 
+                           placeholder="圖片尺寸 (如: 512x512)" 
+                           value="512x512">
+                    <input type="text" 
+                           name="img-style" 
+                           class="option-input" 
+                           placeholder="圖片風格 (如: 寫實、卡通)">
+                </div>
+                
+                <input type="hidden" name="function" [value]="currentFunction || 'chat'">
+                <input type="hidden" name="model" [value]="selectedModel">
+            </form>
+
+            <div class="loading" id="loading">正在處理中...</div>
+        </div>
+
+        <div class="ad-sidebar right">
+            <!-- 右側廣告 - 修正配置 -->
+            <amp-ad width="160" 
+                    height="600"
+                    type="adsense"
+                    data-ad-client="ca-pub-5692204516534246"
+                    data-ad-slot="3456789012"
+                    data-ad-format="auto"
+                    data-full-width-responsive="true">
+                <div fallback>
+                    <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                        廣告載入中...
+                    </div>
+                </div>
+            </amp-ad>
+            
+            <!-- 底部橫幅廣告 -->
+            <amp-ad width="160" 
+                    height="300"
+                    type="adsense"
+                    data-ad-client="ca-pub-5692204516534246"
+                    data-ad-slot="4567890123"
+                    data-ad-format="auto"
+                    data-full-width-responsive="true">
+                <div fallback>
+                    <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                        廣告載入中...
+                    </div>
+                </div>
+            </amp-ad>
+        </div>
+    </div>
+
+    <!-- AMP Script for advanced interactions -->
+    <amp-script id="chat" 
+                script="chatHandler" 
+                sandbox="allow-forms">
+        <script type="text/plain" target="amp-script">
+            // 簡化的聊天處理程序
+            function handleResponse(event) {
+                const response = event.response;
+                addMessage(response.text || '收到回應', 'ai');
+            }
+            
+            function handleError(event) {
+                addMessage('發生錯誤，請稍後再試', 'ai');
+            }
+            
+            function addMessage(content, sender) {
+                const chatBox = document.getElementById('chat-box');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                messageDiv.innerHTML = `<div>${content}</div>`;
+                chatBox.appendChild(messageDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+            
+            // 導出函數供 AMP 使用
+            window.chatHandler = {
+                handleResponse,
+                handleError
+            };
+        </script>
+    </amp-script>
+
+    <!-- AMP State -->
+    <amp-state id="appState">
+        <script type="application/json">
+        {
+            "theme": "light",
+            "currentFunction": "chat",
+            "selectedCategory": "",
+            "selectedModel": "",
+            "modelConfig": {
+                "openai": {
+                    "GPT-4o": "gpt-4o",
+                    "GPT-4o Mini": "gpt-4o-mini",
+                    "GPT-4.5 Preview": "gpt-4.5-preview",
+                    "GPT-4.1": "gpt-4.1",
+                    "o1": "o1",
+                    "o1 Mini": "o1-mini",
+                    "o3": "o3",
+                    "o3 Mini": "o3-mini"
+                },
+                "anthropic": {
+                    "Claude 3.5 Sonnet": "claude-3-5-sonnet",
+                    "Claude 3.7 Sonnet": "claude-3-7-sonnet"
+                },
+                "google": {
+                    "Gemini 2.0 Flash": "gemini-2.0-flash",
+                    "Gemini 1.5 Flash": "gemini-1.5-flash"
+                },
+                "other": {
+                    "Grok Beta": "x-ai/grok-3-beta"
+                }
+            }
+        }
+        </script>
+    </amp-state>
+</body>
+</html>
