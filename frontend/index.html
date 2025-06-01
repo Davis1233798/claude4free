@@ -429,33 +429,59 @@
 
             <form method="post" 
                   action-xhr="https://claude4free-api.davis1233798.workers.dev/api/chat" 
-                  on="submit-success:chat.handleResponse;submit-error:chat.handleError">
+                  on="submit:AMP.setState({isLoading: true, error: ''});
+                      submit-success:AMP.setState({
+                        isLoading: false, 
+                        lastResponse: event.response,
+                        messages: (appState.messages || []).concat([
+                          {text: event.response.text || '收到回應', type: 'ai', time: Date.now()}
+                        ])
+                      });
+                      submit-error:AMP.setState({
+                        isLoading: false, 
+                        error: event.response ? ('API 錯誤: ' + (event.response.error || event.response.message || 'HTTP ' + event.response.status)) : '網路連接失敗，請檢查網路連接'
+                      })">
+                
+                <!-- 在表單提交前添加使用者訊息 -->
+                <div on="change:AMP.setState({
+                  messages: (appState.messages || []).concat([
+                    {text: event.value, type: 'user', time: Date.now()}
+                  ])
+                })" style="display: none;"></div>
+                
                 <div class="input-row">
                     <input type="file" 
                            name="image" 
                            accept="image/*" 
                            class="hidden"
-                           [class]="currentFunction == 'image-recognition' ? '' : 'hidden'">
+                           [class]="appState.currentFunction == 'image-recognition' ? '' : 'hidden'">
                     <button type="button" 
                             class="file-btn"
-                            [class]="currentFunction == 'image-recognition' ? 'file-btn' : 'file-btn hidden'">📎 選擇圖片</button>
+                            [class]="appState.currentFunction == 'image-recognition' ? 'file-btn' : 'file-btn hidden'"
+                            on="tap:imageInput.click"
+                            id="imageButton">📎 選擇圖片</button>
                     
                     <input type="text" 
                            name="message"
-                           [placeholder]="currentFunction == 'chat' ? '在此輸入您的訊息...' : 
-                                         currentFunction == 'image-recognition' ? '選擇圖片並描述您想了解什麼...' :
-                                         currentFunction == 'text-to-speech' ? '輸入要轉換為語音的文字...' :
+                           id="messageInput"
+                           [placeholder]="appState.currentFunction == 'chat' ? '在此輸入您的訊息...' : 
+                                         appState.currentFunction == 'image-recognition' ? '選擇圖片並描述您想了解什麼...' :
+                                         appState.currentFunction == 'text-to-speech' ? '輸入要轉換為語音的文字...' :
                                          '描述您想生成的圖片...'"
-                           required>
+                           required
+                           [disabled]="appState.isLoading">
                     
-                    <button type="submit" class="send-button">發送</button>
+                    <button type="submit" 
+                            class="send-button"
+                            [disabled]="appState.isLoading || !appState.selectedModel"
+                            [text]="appState.isLoading ? '處理中...' : '發送'">發送</button>
                     <button type="button" 
                             class="speak-button"
-                            [class]="currentFunction == 'text-to-speech' ? 'speak-button' : 'speak-button hidden'">🎤 朗讀</button>
+                            [class]="appState.currentFunction == 'text-to-speech' ? 'speak-button' : 'speak-button hidden'">🎤 朗讀</button>
                 </div>
                 
                 <div class="additional-options" 
-                     [show]="currentFunction == 'text-to-speech' || currentFunction == 'text-to-image'">
+                     [class]="'additional-options ' + (appState.currentFunction == 'text-to-speech' || appState.currentFunction == 'text-to-image' ? 'show' : '')">
                     <input type="text" 
                            name="tts-language" 
                            class="option-input" 
@@ -472,11 +498,35 @@
                            placeholder="圖片風格 (如: 寫實、卡通)">
                 </div>
                 
-                <input type="hidden" name="function" [value]="currentFunction || 'chat'">
-                <input type="hidden" name="model" [value]="selectedModel">
+                <input type="hidden" name="function" [value]="appState.currentFunction || 'chat'">
+                <input type="hidden" name="model" [value]="appState.selectedModel">
             </form>
-
-            <div class="loading" id="loading">正在處理中...</div>
+            
+            <!-- 錯誤訊息顯示 -->
+            <div class="error-message" 
+                 [hidden]="!appState.error"
+                 [text]="appState.error">
+            </div>
+            
+            <!-- 載入狀態顯示 -->
+            <div class="loading" 
+                 [class]="'loading ' + (appState.isLoading ? 'show' : '')"
+                 id="loading">正在處理中...</div>
+                 
+            <!-- 顯示聊天訊息 -->
+            <div id="chat-messages" class="chat-messages">
+                <div class="message ai" 
+                     amp-list 
+                     src="amp-state:appState"
+                     template="message-template">
+                    <template type="amp-mustache" id="message-template">
+                        <div class="message {{type}}">
+                            <div>{{text}}</div>
+                            <div class="timestamp">{{time}}</div>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </div>
 
         <div class="ad-sidebar right">
@@ -755,6 +805,10 @@
             "currentFunction": "chat",
             "selectedCategory": "",
             "selectedModel": "",
+            "isLoading": false,
+            "error": "",
+            "messages": [],
+            "lastResponse": null,
             "modelConfig": {
                 "openai": {
                     "GPT-4o": "gpt-4o",

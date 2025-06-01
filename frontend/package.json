@@ -1,0 +1,16 @@
+{
+  "name": "claude4free-frontend",
+  "version": "1.0.0",
+  "description": "Claude4Free Frontend Tests",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run --reporter=verbose",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "jsdom": "^23.0.0",
+    "node-fetch": "^3.3.0"
+  }
+} 
