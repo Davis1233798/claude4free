@@ -11,14 +11,9 @@
     <script async src="https://cdn.ampproject.org/v0.js"></script>
     
     <!-- AMP Components -->
-    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
-    <script async custom-element="amp-ad" src="https://cdn.ampproject.org/v0/amp-ad-0.1.js"></script>
     <script async custom-element="amp-form" src="https://cdn.ampproject.org/v0/amp-form-0.1.js"></script>
     <script async custom-element="amp-selector" src="https://cdn.ampproject.org/v0/amp-selector-0.1.js"></script>
     <script async custom-element="amp-bind" src="https://cdn.ampproject.org/v0/amp-bind-0.1.js"></script>
-    
-    <!-- Google AdSense -->
-    <meta name="google-adsense-account" content="ca-pub-5692204516534246">
     
     <style amp-custom>
         body {
@@ -257,12 +252,30 @@
             color: white;
             border-color: #666;
         }
-        .ad-sidebar {
+        .ad-placeholder {
             width: 160px;
             padding: 10px;
             display: flex;
             flex-direction: column;
             gap: 20px;
+        }
+        .ad-box {
+            width: 160px;
+            height: 300px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+        }
+        body.dark-theme .ad-box {
+            background-color: #444;
+            border-color: #666;
+            color: #aaa;
         }
         .loading {
             display: none;
@@ -270,6 +283,9 @@
             color: #007bff;
             text-align: center;
             font-style: italic;
+        }
+        .loading.show {
+            display: block;
         }
         body.dark-theme .loading {
             color: #4a90e2;
@@ -294,15 +310,32 @@
         .hidden {
             display: none !important;
         }
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        body.dark-theme .error-message {
+            background-color: #721c24;
+            border-color: #842029;
+            color: #f5c2c7;
+        }
         @media (max-width: 768px) {
             #container {
                 flex-direction: column;
                 margin: 70px 10px 20px;
             }
-            .ad-sidebar {
+            .ad-placeholder {
                 width: 100%;
                 flex-direction: row;
                 justify-content: center;
+            }
+            .ad-box {
+                width: 150px;
+                height: 100px;
             }
             .model-selector, .function-buttons {
                 flex-direction: column;
@@ -317,11 +350,6 @@
     </style>
 </head>
 <body>
-    <!-- AMP Auto Ads - 自動廣告 -->
-    <amp-auto-ads type="adsense" 
-                  data-ad-client="ca-pub-5692204516534246">
-    </amp-auto-ads>
-
     <!-- AMP State -->
     <amp-state id="appState">
         <script type="application/json">
@@ -330,38 +358,8 @@
             "currentFunction": "chat",
             "selectedCategory": "",
             "selectedModel": "",
-            "modelOptions": {
-                "openai": [
-                    {"value": "gpt-4o", "text": "GPT-4o"},
-                    {"value": "gpt-4o-mini", "text": "GPT-4o Mini"},
-                    {"value": "gpt-4.5-preview", "text": "GPT-4.5 Preview"},
-                    {"value": "o1", "text": "o1"},
-                    {"value": "o1-mini", "text": "o1 Mini"}
-                ],
-                "anthropic": [
-                    {"value": "claude-3-5-sonnet", "text": "Claude 3.5 Sonnet"},
-                    {"value": "claude-3-7-sonnet", "text": "Claude 3.7 Sonnet"}
-                ],
-                "google": [
-                    {"value": "gemini-2.0-flash", "text": "Gemini 2.0 Flash"},
-                    {"value": "gemini-1.5-flash", "text": "Gemini 1.5 Flash"}
-                ],
-                "meta": [
-                    {"value": "llama-3.1-405b", "text": "Llama 3.1 405B"},
-                    {"value": "llama-3.1-70b", "text": "Llama 3.1 70B"}
-                ],
-                "mistral": [
-                    {"value": "mistral-large", "text": "Mistral Large"},
-                    {"value": "mistral-medium", "text": "Mistral Medium"}
-                ],
-                "deepseek": [
-                    {"value": "deepseek-v3", "text": "DeepSeek V3"},
-                    {"value": "deepseek-coder", "text": "DeepSeek Coder"}
-                ],
-                "other": [
-                    {"value": "x-ai/grok-3-beta", "text": "Grok Beta"}
-                ]
-            }
+            "loading": false,
+            "error": ""
         }
         </script>
     </amp-state>
@@ -369,42 +367,15 @@
     <div id="navbar">
         <h2>🤖 AI 多功能助手</h2>
         <button id="toggle-theme" 
-                on="tap:AMP.setState({theme: appState.theme == 'dark' ? 'light' : 'dark'})"
+                on="tap:AMP.setState({appState: {theme: appState.theme == 'dark' ? 'light' : 'dark'}})"
                 [text]="appState.theme == 'dark' ? '☀️' : '🌙'"
-                [class]="'toggle-btn ' + (appState.theme == 'dark' ? 'light-mode' : 'dark-mode')"
                 title="切換黑白模式">🌙</button>
     </div>
 
-    <div id="container" [class]="'container ' + (appState.theme == 'dark' ? 'dark-theme' : '')">
-        <div class="ad-sidebar left">
-            <!-- 左側廣告 -->
-            <amp-ad width="160" 
-                    height="600"
-                    type="adsense"
-                    data-ad-client="ca-pub-5692204516534246"
-                    data-ad-slot="1234567890"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true">
-                <div fallback>
-                    <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
-                        廣告載入中...
-                    </div>
-                </div>
-            </amp-ad>
-            
-            <amp-ad width="160" 
-                    height="300"
-                    type="adsense"
-                    data-ad-client="ca-pub-5692204516534246"
-                    data-ad-slot="2345678901"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true">
-                <div fallback>
-                    <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
-                        廣告載入中...
-                    </div>
-                </div>
-            </amp-ad>
+    <div id="container" [class]="appState.theme == 'dark' ? 'dark-theme' : ''">
+        <div class="ad-placeholder">
+            <div class="ad-box">廣告位置</div>
+            <div class="ad-box">廣告位置</div>
         </div>
 
         <div id="chat-container">
@@ -414,7 +385,7 @@
             <div class="model-selector">
                 <amp-selector name="model-category" 
                             layout="container"
-                            on="select:AMP.setState({selectedCategory: event.targetOption, selectedModel: ''})"
+                            on="select:AMP.setState({appState: {selectedCategory: event.targetOption, selectedModel: '', error: ''}})"
                             single>
                     <select>
                         <option value="">選擇 AI 模型類型</option>
@@ -430,7 +401,7 @@
                 
                 <amp-selector name="model-version" 
                             layout="container"
-                            on="select:AMP.setState({selectedModel: event.targetOption})"
+                            on="select:AMP.setState({appState: {selectedModel: event.targetOption, error: ''}})"
                             single>
                     <select [disabled]="!appState.selectedCategory">
                         <option value="">請先選擇模型類型</option>
@@ -472,7 +443,7 @@
 
             <amp-selector class="function-buttons" 
                          layout="container"
-                         on="select:AMP.setState({currentFunction: event.targetOption})"
+                         on="select:AMP.setState({appState: {currentFunction: event.targetOption, error: ''}})"
                          single>
                 <button option="chat" selected class="function-btn">💬 對話</button>
                 <button option="image-recognition" class="function-btn">🖼️ 圖片識別</button>
@@ -486,6 +457,11 @@
                 </div>
             </div>
             
+            <div class="error-message" 
+                 [hidden]="!appState.error"
+                 [text]="appState.error">
+            </div>
+            
             <div class="preview-area" id="preview-area">
                 <p><strong>預覽：</strong></p>
                 <div id="preview-content"></div>
@@ -493,7 +469,9 @@
 
             <form method="post" 
                   action-xhr="https://claude4free-api.davis1233798.workers.dev/api/chat" 
-                  on="submit-success:AMP.setState({loading: false});submit-error:AMP.setState({loading: false})">
+                  on="submit:AMP.setState({appState: {loading: true, error: ''}});
+                      submit-success:AMP.setState({appState: {loading: false}});
+                      submit-error:AMP.setState({appState: {loading: false, error: '發送失敗，請稍後再試'}})">
                 <div class="input-row">
                     <input type="file" 
                            name="image" 
@@ -514,7 +492,7 @@
                     
                     <button type="submit" 
                             class="send-button"
-                            on="tap:AMP.setState({loading: true})">發送</button>
+                            [disabled]="!appState.selectedModel || appState.loading">發送</button>
                     <button type="button" 
                             class="speak-button"
                             [class]="appState.currentFunction == 'text-to-speech' ? 'speak-button' : 'speak-button hidden'">🎤 朗讀</button>
@@ -543,39 +521,13 @@
             </form>
 
             <div class="loading" 
-                 [class]="'loading ' + (appState.loading ? '' : 'hidden')"
+                 [class]="'loading ' + (appState.loading ? 'show' : '')"
                  id="loading">正在處理中...</div>
         </div>
 
-        <div class="ad-sidebar right">
-            <!-- 右側廣告 -->
-            <amp-ad width="160" 
-                    height="600"
-                    type="adsense"
-                    data-ad-client="ca-pub-5692204516534246"
-                    data-ad-slot="3456789012"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true">
-                <div fallback>
-                    <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
-                        廣告載入中...
-                    </div>
-                </div>
-            </amp-ad>
-            
-            <amp-ad width="160" 
-                    height="300"
-                    type="adsense"
-                    data-ad-client="ca-pub-5692204516534246"
-                    data-ad-slot="4567890123"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true">
-                <div fallback>
-                    <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
-                        廣告載入中...
-                    </div>
-                </div>
-            </amp-ad>
+        <div class="ad-placeholder">
+            <div class="ad-box">廣告位置</div>
+            <div class="ad-box">廣告位置</div>
         </div>
     </div>
 </body>
