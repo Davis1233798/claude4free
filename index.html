@@ -7,13 +7,12 @@
     <meta name="description" content="免費與Claude 4、GPT-4o、Gemini等AI互動，支援圖片識別、語音生成、圖片生成。">
     <meta name="keywords" content="AI, claude 4, GPT-4, Gemini, 圖片識別, 語音生成, 圖片生成, free chat gpt, free claude 4 opus, free claude opus, free claude, free claude 4, free claude 4 sonnet, free claude 3.7 opus, free gpt 4.5, free gpt 4.1, free grok, free mistral">
     
-    <!-- 引入 Puter.js -->
-    <script src="https://js.puter.com/v2/"></script>
-    
     <!-- Google AdSense -->
     <meta name="google-adsense-account" content="ca-pub-5692204516534246">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5692204516534246"
-         crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5692204516534246" crossorigin="anonymous"></script>
+    
+    <!-- 引入 Puter.js -->
+    <script src="https://js.puter.com/v2/"></script>
     
     <style>
         body {
@@ -562,25 +561,6 @@
                     throw new Error('Puter.js 未正確載入');
                 }
                 
-                // 檢查必要的API是否存在
-                const missingApis = [];
-                if (typeof puter.ai === 'undefined') {
-                    missingApis.push('puter.ai');
-                }
-                if (typeof puter.ai?.chat !== 'function') {
-                    missingApis.push('puter.ai.chat');
-                }
-                if (typeof puter.ai?.textToSpeech !== 'function') {
-                    missingApis.push('puter.ai.textToSpeech');
-                }
-                if (typeof puter.ai?.textToImage !== 'function') {
-                    missingApis.push('puter.ai.textToImage');
-                }
-                
-                if (missingApis.length > 0) {
-                    console.warn('部分API功能不可用:', missingApis);
-                }
-                
                 console.log('Puter 物件可用，測試API連接...');
                 
                 // 使用一個簡單的測試來檢查API
@@ -592,15 +572,10 @@
                 
                 appState.puterConnected = true;
                 elements.puterStatusIcon.textContent = '✅';
-                elements.puterStatusText.textContent = `Puter AI 服務連接正常 ${missingApis.length > 0 ? '(部分功能不可用)' : ''}`;
+                elements.puterStatusText.textContent = 'Puter AI 服務連接正常';
                 elements.puterStatus.style.backgroundColor = '#d4edda';
                 elements.puterStatus.style.borderColor = '#c3e6cb';
                 elements.puterStatus.style.color = '#155724';
-                
-                // 如果有缺失的API，顯示警告
-                if (missingApis.length > 0) {
-                    elements.puterStatusText.textContent += ` - 不可用功能: ${missingApis.join(', ')}`;
-                }
                 
                 console.log('Puter AI 服務連接成功');
             } catch (error) {
@@ -615,10 +590,6 @@
                 // 如果是因為Puter.js未載入，提供解決建議
                 if (error.message.includes('Puter.js 未正確載入')) {
                     elements.puterStatusText.textContent = 'Puter.js 庫未載入，請檢查網路連接並重新整理頁面';
-                } else if (error.message.includes('Rate limit') || error.message.includes('quota')) {
-                    elements.puterStatusText.textContent = 'API 調用限制，請稍後再試';
-                } else if (error.message.includes('Network')) {
-                    elements.puterStatusText.textContent = '網路連接問題，請檢查網路並重試';
                 }
             }
         }
@@ -819,39 +790,38 @@
                 
                 console.log('API 回應:', response);
                 
-                // 正確解析 Puter AI 回應格式
+                // 根據不同的回應格式提取文字
                 let text = '';
                 if (response && typeof response === 'object') {
-                    // 處理標準 Puter AI 回應格式
-                    if (typeof response === 'string') {
-                        text = response;
-                    } else if (response.message && response.message.content) {
-                        // OpenAI 格式回應
-                        if (Array.isArray(response.message.content)) {
-                            text = response.message.content[0]?.text || response.message.content[0] || '';
-                        } else if (typeof response.message.content === 'string') {
-                            text = response.message.content;
-                        }
-                    } else if (response.choices && Array.isArray(response.choices)) {
-                        // 標準 OpenAI API 格式
-                        text = response.choices[0]?.message?.content || '';
-                    } else if (response.content) {
+                    // 處理 OpenAI 格式的回應
+                    if (response.message && response.message.content) {
+                        text = response.message.content;
+                    }
+                    // 處理 Claude 格式的回應
+                    else if (response.message && response.message.content && Array.isArray(response.message.content)) {
+                        text = response.message.content[0]?.text || '';
+                    } 
+                    // 處理其他格式
+                    else if (response.content) {
                         text = response.content;
                     } else if (response.text) {
                         text = response.text;
                     } else if (response.response) {
                         text = response.response;
-                    } else {
-                        // 如果是原始JSON回應，嘗試不顯示JSON
-                        console.warn('無法解析的回應格式:', response);
-                        throw new Error('AI 服務暫時不可用，請稍後再試');
+                    } 
+                    // 如果是 JSON 格式但包含實際回應內容，顯示錯誤
+                    else if (response.index !== undefined && response.finish_reason) {
+                        throw new Error('模型回應格式異常，請嘗試其他模型');
+                    }
+                    else {
+                        text = JSON.stringify(response);
                     }
                 } else {
                     text = String(response);
                 }
                 
                 if (!text) {
-                    throw new Error('AI 回應為空，請重試');
+                    throw new Error('AI 回應格式異常');
                 }
                 
                 return {
@@ -872,11 +842,28 @@
                     throw new Error('請選擇圖片文件');
                 }
                 
-                console.log(`正在使用 ${model} 進行圖片識別...`);
+                console.log('正在進行圖片識別...');
                 
-                // 使用正確的 Puter AI 圖片識別API
+                // 首先嘗試使用 Puter 的 img2txt API
+                try {
+                    const text = await puter.ai.img2txt(imageFile, false);
+                    console.log('圖片識別 API 回應:', text);
+                    
+                    if (text && typeof text === 'string') {
+                        const finalText = message ? `${message}\n\n圖片內容：${text}` : `圖片內容：${text}`;
+                        return {
+                            text: finalText,
+                            success: true
+                        };
+                    }
+                } catch (imgError) {
+                    console.log('img2txt API 不可用，嘗試使用 chat API:', imgError.message);
+                }
+                
+                // 如果 img2txt 不可用，回退到 chat API
+                console.log(`正在使用 ${model} 進行圖片識別...`);
                 const response = await puter.ai.chat([
-                    { type: 'text', text: message },
+                    { type: 'text', text: message || '請描述這張圖片的內容' },
                     { type: 'image', image: imageFile }
                 ], {
                     model: model
@@ -884,33 +871,26 @@
                 
                 console.log('圖片識別 API 回應:', response);
                 
-                // 使用與聊天相同的回應解析邏輯
+                // 提取回應文字
                 let text = '';
                 if (response && typeof response === 'object') {
-                    if (typeof response === 'string') {
-                        text = response;
+                    if (response.message && response.message.content && Array.isArray(response.message.content)) {
+                        text = response.message.content[0]?.text || '';
                     } else if (response.message && response.message.content) {
-                        if (Array.isArray(response.message.content)) {
-                            text = response.message.content[0]?.text || response.message.content[0] || '';
-                        } else if (typeof response.message.content === 'string') {
-                            text = response.message.content;
-                        }
-                    } else if (response.choices && Array.isArray(response.choices)) {
-                        text = response.choices[0]?.message?.content || '';
+                        text = response.message.content;
                     } else if (response.content) {
                         text = response.content;
                     } else if (response.text) {
                         text = response.text;
                     } else {
-                        console.warn('無法解析的圖片識別回應格式:', response);
-                        throw new Error('圖片識別服務暫時不可用，請稍後再試');
+                        text = JSON.stringify(response);
                     }
                 } else {
                     text = String(response);
                 }
                 
                 if (!text) {
-                    throw new Error('圖片識別回應為空，請重試');
+                    throw new Error('圖片識別回應格式異常');
                 }
                 
                 return {
@@ -923,73 +903,52 @@
             }
         }
 
-        // 處理語音生成 - 使用正確的 Puter API
+        // 處理語音生成
         async function handleTextToSpeech(text) {
             try {
-                const language = document.getElementById('tts-language').value || 'zh-TW';
+                const language = document.getElementById('tts-language').value || 'en-US';
                 
                 console.log('正在生成語音...');
-                
-                // 檢查 puter.ai.textToSpeech 是否存在
-                if (typeof puter.ai.textToSpeech !== 'function') {
-                    throw new Error('語音生成功能暫時不可用，Puter API 未完全載入');
-                }
-                
-                const response = await puter.ai.textToSpeech(text, {
-                    voice: getVoiceForLanguage(language),
-                    speed: 1.0,
-                    pitch: 0
-                });
+                const response = await puter.ai.txt2speech(text, language, false);
                 
                 console.log('語音生成 API 回應:', response);
                 
-                if (!response || !response.url) {
-                    throw new Error('語音生成服務回應異常');
+                // Puter txt2speech 回傳 MP3 音頻流
+                if (response && (response instanceof HTMLAudioElement || response.play)) {
+                    return {
+                        text: `已生成語音內容: "${text}"`,
+                        audioElement: response,
+                        success: true
+                    };
+                } else {
+                    throw new Error('語音生成回應格式異常');
                 }
                 
-                return {
-                    text: `已生成語音內容: "${text}"`,
-                    audioUrl: response.url,
-                    success: true
-                };
             } catch (error) {
                 console.error('語音生成錯誤:', error);
                 throw new Error(`語音生成功能暫時不可用: ${error.message}`);
             }
         }
 
-        // 處理圖片生成 - 使用正確的 Puter API
+        // 處理圖片生成
         async function handleTextToImage(prompt) {
             try {
-                const size = document.getElementById('img-size').value || '1024x1024';
-                const style = document.getElementById('img-style').value || '';
-                
-                const fullPrompt = style ? `${prompt}, ${style} style` : prompt;
-                
                 console.log('正在生成圖片...');
+                const imageDataUrl = await puter.ai.txt2img(prompt, false);
                 
-                // 檢查 puter.ai.textToImage 是否存在
-                if (typeof puter.ai.textToImage !== 'function') {
-                    throw new Error('圖片生成功能暫時不可用，Puter API 未完全載入');
+                console.log('圖片生成 API 回應:', imageDataUrl);
+                
+                // Puter txt2img 回傳 image data URL
+                if (imageDataUrl && (typeof imageDataUrl === 'string' || imageDataUrl instanceof HTMLImageElement)) {
+                    return {
+                        text: `已生成圖片: "${prompt}"`,
+                        imageUrl: typeof imageDataUrl === 'string' ? imageDataUrl : imageDataUrl.src,
+                        success: true
+                    };
+                } else {
+                    throw new Error('圖片生成回應格式異常');
                 }
                 
-                const response = await puter.ai.textToImage(fullPrompt, {
-                    size: size,
-                    quality: 'standard',
-                    style: 'vivid'
-                });
-                
-                console.log('圖片生成 API 回應:', response);
-                
-                if (!response || !response.url) {
-                    throw new Error('圖片生成服務回應異常');
-                }
-                
-                return {
-                    text: `已生成圖片: "${prompt}"`,
-                    imageUrl: response.url,
-                    success: true
-                };
             } catch (error) {
                 console.error('圖片生成錯誤:', error);
                 throw new Error(`圖片生成功能暫時不可用: ${error.message}`);
@@ -1038,7 +997,12 @@
             messageDiv.appendChild(contentDiv);
             
             // 添加語音播放器
-            if (response.audioUrl) {
+            if (response.audioElement) {
+                const audioDiv = document.createElement('div');
+                audioDiv.style.cssText = 'margin: 10px 0;';
+                audioDiv.appendChild(response.audioElement);
+                messageDiv.appendChild(audioDiv);
+            } else if (response.audioUrl) {
                 const audioDiv = document.createElement('div');
                 audioDiv.innerHTML = `<audio controls style="margin: 10px 0;"><source src="${response.audioUrl}" type="audio/mpeg">您的瀏覽器不支援音頻播放。</audio>`;
                 messageDiv.appendChild(audioDiv);
