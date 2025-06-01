@@ -368,13 +368,6 @@
             <h1>🚀 免費 AI 多功能助手</h1>
             <p>支援對話、圖片識別、語音生成、圖片生成等多種 AI 功能</p>
             
-            <!-- 後端狀態指示器 -->
-            <div id="backend-status" style="margin-bottom: 15px; padding: 8px 12px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                <span id="status-icon">⏳</span>
-                <span id="status-text">檢查後端服務狀態...</span>
-                <button id="refresh-status" style="margin-left: auto; padding: 4px 8px; font-size: 12px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer;">重新檢查</button>
-            </div>
-            
             <div class="model-selector">
                 <amp-selector name="model-category" 
                             layout="container"
@@ -517,39 +510,10 @@
                 script="chatHandler" 
                 sandbox="allow-forms">
         <script type="text/plain" target="amp-script">
-            // XSS 防禦：HTML 轉義函數
-            function escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-            
-            // XSS 防禦：移除危險標籤和屬性
-            function sanitizeContent(content) {
-                if (typeof content !== 'string') {
-                    content = String(content);
-                }
-                
-                // 移除所有 HTML 標籤，只保留純文字
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = content;
-                return tempDiv.textContent || tempDiv.innerText || '';
-            }
-            
-            // 格式化消息內容（安全方式）
-            function formatMessage(content) {
-                // 先清理內容
-                const cleanContent = sanitizeContent(content);
-                
-                // 安全地應用基本格式化（換行）
-                return cleanContent.replace(/\n/g, '<br>');
-            }
-            
-            // 聊天處理程序
+            // 簡化的聊天處理程序
             function handleResponse(event) {
                 const response = event.response;
-                const content = response.text || response.message || '收到回應';
-                addMessage(content, 'ai');
+                addMessage(response.text || '收到回應', 'ai');
             }
             
             function handleError(event) {
@@ -560,190 +524,16 @@
                 const chatBox = document.getElementById('chat-box');
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${sender}`;
-                
-                // 創建內容容器
-                const contentDiv = document.createElement('div');
-                
-                // 🛡️ 安全防護：使用 textContent 而不是 innerHTML
-                const safeContent = sanitizeContent(content);
-                contentDiv.textContent = safeContent;
-                
-                // 如果內容過長，添加展開/收縮功能
-                if (safeContent.length > 500) {
-                    const truncatedContent = safeContent.substring(0, 500) + '...';
-                    contentDiv.textContent = truncatedContent;
-                    
-                    const expandButton = document.createElement('button');
-                    expandButton.textContent = '展開';
-                    expandButton.style.cssText = 'margin-left: 10px; padding: 2px 8px; font-size: 12px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer;';
-                    
-                    let isExpanded = false;
-                    expandButton.onclick = function() {
-                        if (isExpanded) {
-                            contentDiv.textContent = truncatedContent;
-                            expandButton.textContent = '展開';
-                            isExpanded = false;
-                        } else {
-                            contentDiv.textContent = safeContent;
-                            expandButton.textContent = '收縮';
-                            isExpanded = true;
-                        }
-                    };
-                    
-                    messageDiv.appendChild(contentDiv);
-                    messageDiv.appendChild(expandButton);
-                } else {
-                    messageDiv.appendChild(contentDiv);
-                }
-                
-                // 添加時間戳
-                const timeDiv = document.createElement('div');
-                timeDiv.style.cssText = 'font-size: 11px; color: #888; margin-top: 5px;';
-                timeDiv.textContent = new Date().toLocaleTimeString();
-                messageDiv.appendChild(timeDiv);
-                
+                messageDiv.innerHTML = `<div>${content}</div>`;
                 chatBox.appendChild(messageDiv);
                 chatBox.scrollTop = chatBox.scrollHeight;
-                
-                // 限制聊天記錄數量（避免記憶體洩漏）
-                const messages = chatBox.getElementsByClassName('message');
-                if (messages.length > 50) {
-                    chatBox.removeChild(messages[0]);
-                }
-            }
-            
-            // 安全的用戶輸入處理
-            function handleUserInput() {
-                const messageInput = document.querySelector('input[name="message"]');
-                if (messageInput) {
-                    const userMessage = messageInput.value.trim();
-                    if (userMessage) {
-                        addMessage(userMessage, 'user');
-                        messageInput.value = '';
-                    }
-                }
-            }
-            
-            // 初始化安全檢查
-            function initializeSecurity() {
-                // 檢查並清理現有的聊天記錄
-                const chatBox = document.getElementById('chat-box');
-                const existingMessages = chatBox.querySelectorAll('.message');
-                
-                existingMessages.forEach(function(message) {
-                    const contentDiv = message.querySelector('div');
-                    if (contentDiv && contentDiv.innerHTML) {
-                        // 轉換為安全文字
-                        const safeText = sanitizeContent(contentDiv.innerHTML);
-                        contentDiv.textContent = safeText;
-                    }
-                });
-            }
-            
-            // 後端狀態檢查功能
-            function checkBackendStatus() {
-                const statusIcon = document.getElementById('status-icon');
-                const statusText = document.getElementById('status-text');
-                const statusContainer = document.getElementById('backend-status');
-                
-                // 設置檢查中狀態
-                statusIcon.textContent = '⏳';
-                statusText.textContent = '檢查後端服務狀態...';
-                statusContainer.style.backgroundColor = '#f8f9fa';
-                statusContainer.style.border = '1px solid #dee2e6';
-                
-                // 發送健康檢查請求
-                fetch('https://claude4free-api.davis1233798.workers.dev/health', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                })
-                .then(data => {
-                    // 後端正常
-                    statusIcon.textContent = '✅';
-                    statusText.textContent = `後端服務正常運行 (${data.service || 'API'})`;
-                    statusContainer.style.backgroundColor = '#d4edda';
-                    statusContainer.style.border = '1px solid #c3e6cb';
-                    statusContainer.style.color = '#155724';
-                })
-                .catch(error => {
-                    // 後端異常
-                    statusIcon.textContent = '❌';
-                    statusText.textContent = `後端服務連接失敗: ${error.message}`;
-                    statusContainer.style.backgroundColor = '#f8d7da';
-                    statusContainer.style.border = '1px solid #f5c6cb';
-                    statusContainer.style.color = '#721c24';
-                    
-                    // 添加錯誤訊息到聊天記錄
-                    addMessage(`⚠️ 後端服務連接失敗，請檢查網路連接或稍後再試。錯誤詳情: ${error.message}`, 'ai');
-                });
-            }
-            
-            // API 調用包裝函數（帶重試機制）
-            async function callAPI(endpoint, options = {}, retries = 3) {
-                for (let i = 0; i < retries; i++) {
-                    try {
-                        const response = await fetch(endpoint, {
-                            ...options,
-                            headers: {
-                                'Content-Type': 'application/json',
-                                ...options.headers
-                            }
-                        });
-                        
-                        if (response.ok) {
-                            return await response.json();
-                        }
-                        
-                        if (response.status >= 500 && i < retries - 1) {
-                            // 服務器錯誤，重試
-                            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                            continue;
-                        }
-                        
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    } catch (error) {
-                        if (i === retries - 1) {
-                            throw error;
-                        }
-                        // 網路錯誤，等待後重試
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                    }
-                }
             }
             
             // 導出函數供 AMP 使用
             window.chatHandler = {
                 handleResponse,
-                handleError,
-                addMessage,
-                handleUserInput,
-                initializeSecurity
+                handleError
             };
-            
-            // 頁面載入後初始化安全檢查
-            document.addEventListener('DOMContentLoaded', function() {
-                initializeSecurity();
-                
-                // 初始化後端狀態檢查
-                checkBackendStatus();
-                
-                // 綁定重新檢查按鈕
-                const refreshButton = document.getElementById('refresh-status');
-                if (refreshButton) {
-                    refreshButton.addEventListener('click', checkBackendStatus);
-                }
-                
-                // 定期檢查後端狀態（每5分鐘）
-                setInterval(checkBackendStatus, 5 * 60 * 1000);
-            });
         </script>
     </amp-script>
 
