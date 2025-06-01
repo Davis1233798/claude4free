@@ -7,8 +7,11 @@
     <meta name="description" content="免費與Claude 4、GPT-4o、Gemini等AI互動，支援圖片識別、語音生成、圖片生成。">
     <meta name="keywords" content="AI, claude 4, GPT-4, Gemini, 圖片識別, 語音生成, 圖片生成, free chat gpt, free claude 4 opus, free claude opus, free claude, free claude 4, free claude 4 sonnet, free claude 3.7 opus, free gpt 4.5, free gpt 4.1, free grok, free mistral">
     
-    <!-- Puter.js SDK -->
+    <!-- 引入 Puter.js -->
     <script src="https://js.puter.com/v2/"></script>
+    
+    <!-- Google AdSense -->
+    <meta name="google-adsense-account" content="ca-pub-5692204516534246">
     
     <style>
         body {
@@ -20,7 +23,7 @@
             display: flex;
             min-height: 100vh;
         }
-        body.dark-theme {
+        body[theme="dark"] {
             background-color: #1a1a1a;
             color: white;
         }
@@ -37,7 +40,7 @@
             align-items: center;
             box-sizing: border-box;
         }
-        body.dark-theme #navbar {
+        body[theme="dark"] #navbar {
             background-color: #2a2a2a;
         }
         #toggle-theme {
@@ -75,7 +78,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
         }
-        body.dark-theme #chat-container {
+        body[theme="dark"] #chat-container {
             background-color: #2a2a2a;
             color: white;
         }
@@ -85,14 +88,14 @@
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
-        .model-selector select {
+        select {
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             background-color: white;
             min-width: 150px;
         }
-        body.dark-theme .model-selector select {
+        body[theme="dark"] select {
             background-color: #444;
             color: white;
             border-color: #666;
@@ -117,11 +120,11 @@
             background-color: #007bff;
             color: white;
         }
-        body.dark-theme .function-btn {
+        body[theme="dark"] .function-btn {
             border-color: #4a90e2;
             color: #4a90e2;
         }
-        body.dark-theme .function-btn.selected {
+        body[theme="dark"] .function-btn.selected {
             background-color: #4a90e2;
         }
         #chat-box {
@@ -133,7 +136,7 @@
             border-radius: 10px;
             transition: all 0.3s ease;
         }
-        body.dark-theme #chat-box {
+        body[theme="dark"] #chat-box {
             background-color: #333;
             border-color: #555;
         }
@@ -157,7 +160,7 @@
             margin-right: auto;
             border-bottom-left-radius: 5px;
         }
-        body.dark-theme .ai {
+        body[theme="dark"] .ai {
             background-color: #404040;
             color: #e0e0e0;
         }
@@ -193,126 +196,42 @@
         input[type="text"]:focus {
             border-color: #007bff;
         }
-        body.dark-theme input[type="text"] {
+        body[theme="dark"] input[type="text"] {
             background-color: #444;
             color: white;
             border-color: #666;
         }
         button {
-            padding: 10px 16px;
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.3s ease;
         }
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .file-btn {
-            background-color: #28a745;
-            color: white;
-        }
-        .file-btn:hover:not(:disabled) {
-            background-color: #218838;
-        }
-        .send-button {
-            background-color: #007bff;
-            color: white;
-        }
-        .send-button:hover:not(:disabled) {
+        button:hover {
             background-color: #0056b3;
+            transform: translateY(-1px);
         }
-        .speak-button {
-            background-color: #6f42c1;
-            color: white;
-        }
-        .speak-button:hover:not(:disabled) {
-            background-color: #5a32a3;
-        }
-        .additional-options {
-            display: none;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .additional-options.show {
-            display: flex;
-        }
-        .option-input {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 15px;
-            font-size: 12px;
-        }
-        body.dark-theme .option-input {
-            background-color: #444;
-            color: white;
-            border-color: #666;
-        }
-        .ad-placeholder {
-            width: 160px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .ad-box {
-            width: 160px;
-            height: 300px;
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-            font-size: 12px;
-            text-align: center;
-        }
-        body.dark-theme .ad-box {
-            background-color: #444;
-            border-color: #666;
-            color: #aaa;
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
         }
         .loading {
             display: none;
-            margin-top: 10px;
-            color: #007bff;
             text-align: center;
-            font-style: italic;
+            color: #007bff;
+            margin: 10px 0;
         }
         .loading.show {
             display: block;
         }
-        body.dark-theme .loading {
-            color: #4a90e2;
-        }
-        .preview-area {
-            display: none;
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-        }
-        body.dark-theme .preview-area {
-            background-color: #444;
-            border-color: #666;
-        }
-        .preview-image {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 5px;
-        }
-        .hidden {
-            display: none !important;
-        }
         .error-message {
-            color: #dc3545;
             background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
+            color: #721c24;
             padding: 10px;
             border-radius: 5px;
             margin: 10px 0;
@@ -321,190 +240,207 @@
         .error-message.show {
             display: block;
         }
-        body.dark-theme .error-message {
-            background-color: #721c24;
-            border-color: #842029;
-            color: #f5c2c7;
-        }
-        @media (max-width: 768px) {
-            #container {
-                flex-direction: column;
-                margin: 70px 10px 20px;
-            }
-            .ad-placeholder {
-                width: 100%;
-                flex-direction: row;
-                justify-content: center;
-            }
-            .ad-box {
-                width: 150px;
-                height: 100px;
-            }
-            .model-selector, .function-buttons {
-                flex-direction: column;
-            }
-            .model-selector select {
-                min-width: unset;
-            }
-            #navbar h2 {
-                font-size: 16px;
-            }
+        body[theme="dark"] .error-message {
+            background-color: #2d1b1d;
+            color: #f5c6cb;
         }
         .connection-status {
-            display: none;
-            margin-top: 15px;
-            padding: 12px;
             background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
             color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
         }
         .connection-status.show {
-            display: block;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        body.dark-theme .connection-status {
-            background-color: #664d03;
-            border-color: #b8860b;
-            color: #fff3cd;
+        body[theme="dark"] .connection-status {
+            background-color: #332701;
+            color: #ffeaa7;
+        }
+        .secondary-options {
+            display: none;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .secondary-options.show {
+            display: flex;
+        }
+        .ad-placeholder {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .ad-box {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+            border-radius: 10px;
+        }
+        body[theme="dark"] .ad-box {
+            background: linear-gradient(45deg, #333, #444);
+            border-color: #555;
+            color: #999;
+        }
+        .backend-status {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        body[theme="dark"] .backend-status {
+            background-color: #2a2a2a;
+            border-color: #404040;
         }
         .status-indicator {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
+            gap: 8px;
         }
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
+        .status-icon {
+            font-size: 16px;
         }
-        .status-dot.offline {
-            background-color: #dc3545;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        .retry-button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
+        .refresh-btn {
+            padding: 5px 10px;
             font-size: 12px;
-            transition: background-color 0.3s ease;
+            background-color: #6c757d;
         }
-        .retry-button:hover {
-            background-color: #0056b3;
+        .refresh-btn:hover {
+            background-color: #545b62;
         }
-        body.dark-theme .retry-button {
-            background-color: #4a90e2;
-        }
-        body.dark-theme .retry-button:hover {
-            background-color: #357abd;
+
+        @media (max-width: 768px) {
+            #container {
+                flex-direction: column;
+                margin-top: 90px;
+            }
+            .ad-placeholder {
+                width: 100%;
+                order: -1;
+            }
+            .ad-box {
+                height: 100px;
+            }
+            .model-selector {
+                flex-direction: column;
+            }
+            .function-buttons {
+                justify-content: center;
+            }
+            .input-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
         }
     </style>
 </head>
 <body>
     <div id="navbar">
-        <h2>🤖 AI 多功能助手</h2>
-        <button id="toggle-theme" title="切換黑白模式">🌙</button>
+        <h2>免費 AI 對話助手</h2>
+        <button id="toggle-theme" onclick="toggleTheme()">🌙</button>
     </div>
 
     <div id="container">
-        <div class="ad-placeholder">
-            <div class="ad-box">廣告位置</div>
-            <div class="ad-box">廣告位置</div>
-        </div>
-
         <div id="chat-container">
-            <h1>🚀 免費 AI 多功能助手</h1>
-            <p>支援對話、圖片識別、語音生成、圖片生成等多種 AI 功能</p>
-            
+            <!-- Puter連接狀態 -->
+            <div class="backend-status" id="puter-status">
+                <div class="status-indicator">
+                    <span class="status-icon" id="puter-status-icon">⏳</span>
+                    <span id="puter-status-text">正在連接Puter AI服務...</span>
+                </div>
+                <button class="refresh-btn" id="refresh-puter-status" onclick="checkPuterStatus()">重新檢測</button>
+            </div>
+
+            <!-- 模型選擇 -->
             <div class="model-selector">
-                <select id="model-category">
-                    <option value="">選擇 AI 模型類型</option>
-                    <option value="openai">⭐ OpenAI</option>
-                    <option value="anthropic">🔥 Anthropic</option>
-                    <option value="google">🌟 Google</option>
-                    <option value="meta">🦙 Meta</option>
-                    <option value="mistral">🚀 Mistral</option>
-                    <option value="deepseek">🧠 DeepSeek</option>
-                    <option value="other">🔮 其他</option>
+                <select id="model-category" onchange="handleCategoryChange()">
+                    <option value="">請選擇AI提供商</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Anthropic</option>
+                    <option value="google">Google</option>
+                    <option value="meta">Meta</option>
+                    <option value="mistral">Mistral</option>
+                    <option value="deepseek">DeepSeek</option>
+                    <option value="other">其他</option>
                 </select>
                 
-                <select id="model-version" disabled>
-                    <option value="">請先選擇模型類型</option>
+                <select id="model-version" onchange="handleModelChange()" disabled>
+                    <option value="">請先選擇提供商</option>
                 </select>
             </div>
 
+            <!-- 功能選擇 -->
             <div class="function-buttons">
-                <button class="function-btn selected" data-function="chat">💬 對話</button>
-                <button class="function-btn" data-function="image-recognition">🖼️ 圖片識別</button>
-                <button class="function-btn" data-function="text-to-speech">🔊 語音生成</button>
-                <button class="function-btn" data-function="text-to-image">🎨 圖片生成</button>
+                <button class="function-btn selected" data-function="chat" onclick="handleFunctionChange('chat')">💬 聊天</button>
+                <button class="function-btn" data-function="image-recognition" onclick="handleFunctionChange('image-recognition')">🖼️ 圖片識別</button>
+                <button class="function-btn" data-function="text-to-speech" onclick="handleFunctionChange('text-to-speech')">🔊 語音生成</button>
+                <button class="function-btn" data-function="text-to-image" onclick="handleFunctionChange('text-to-image')">🎨 圖片生成</button>
             </div>
 
-            <div id="chat-box">
-                <div class="message ai">
-                    <div>歡迎使用 AI 多功能助手！請選擇模型和功能開始使用。</div>
+            <!-- 次要選項 -->
+            <div class="secondary-options" id="secondary-options">
+                <!-- 語音生成選項 -->
+                <div class="secondary-option" id="tts-options" style="display: none;">
+                    <select id="tts-language">
+                        <option value="zh-TW">中文（繁體）</option>
+                        <option value="zh-CN">中文（簡體）</option>
+                        <option value="en-US">English (US)</option>
+                        <option value="ja-JP">日本語</option>
+                        <option value="ko-KR">한국어</option>
+                    </select>
+                </div>
+
+                <!-- 圖片生成選項 -->
+                <div class="secondary-option" id="img-options" style="display: none;">
+                    <select id="img-size">
+                        <option value="512x512">512x512</option>
+                        <option value="1024x1024">1024x1024</option>
+                        <option value="1792x1024">1792x1024</option>
+                        <option value="1024x1792">1024x1792</option>
+                    </select>
+                    <select id="img-style">
+                        <option value="">預設風格</option>
+                        <option value="realistic">寫實風格</option>
+                        <option value="cartoon">卡通風格</option>
+                        <option value="anime">動漫風格</option>
+                        <option value="photographic">攝影風格</option>
+                    </select>
+                </div>
+
+                <!-- 圖片識別選項 -->
+                <div class="secondary-option" id="img-recognition-options" style="display: none;">
+                    <input type="file" id="image-input" accept="image/*" onchange="handleImageUpload()">
+                    <div id="preview-area" style="display: none; margin-top: 10px;">
+                        <div id="preview-content"></div>
+                    </div>
                 </div>
             </div>
-            
+
+            <!-- 聊天區域 -->
+            <div id="chat-box"></div>
+
+            <!-- 載入狀態 -->
+            <div class="loading" id="loading">⏳ AI 正在思考中...</div>
+
+            <!-- 錯誤訊息 -->
             <div class="error-message" id="error-message"></div>
-            
-            <div class="preview-area" id="preview-area">
-                <p><strong>預覽：</strong></p>
-                <div id="preview-content"></div>
-            </div>
 
-            <form id="chat-form">
-                <div class="input-row">
-                    <input type="file" 
-                           id="image-input" 
-                           accept="image/*" 
-                           class="hidden">
-                    <button type="button" 
-                            id="file-btn"
-                            class="file-btn hidden">📎 選擇圖片</button>
-                    
-                    <input type="text" 
-                           id="message-input"
-                           placeholder="在此輸入您的訊息..."
-                           required>
-                    
-                    <button type="submit" 
-                            id="send-btn"
-                            class="send-button">發送</button>
-                    <button type="button" 
-                            id="speak-btn"
-                            class="speak-button hidden">🎤 朗讀</button>
-                </div>
-                
-                <div class="additional-options" id="additional-options">
-                    <input type="text" 
-                           id="tts-language" 
-                           class="option-input" 
-                           placeholder="語言 (如: zh-TW)" 
-                           value="zh-TW">
-                    <input type="text" 
-                           id="img-size" 
-                           class="option-input" 
-                           placeholder="圖片尺寸 (如: 512x512)" 
-                           value="512x512">
-                    <input type="text" 
-                           id="img-style" 
-                           class="option-input" 
-                           placeholder="圖片風格 (如: 寫實、卡通)">
-                </div>
-            </form>
-
-            <div class="loading" id="loading">正在處理中...</div>
-                 
-            <!-- 連接狀態指示器 -->
+            <!-- 連接狀態 -->
             <div class="connection-status" id="connection-status">
                 <div class="status-indicator">
                     <span class="status-dot offline"></span>
@@ -513,6 +449,14 @@
                 <button type="button" 
                         class="retry-button"
                         id="retry-btn">重試</button>
+            </div>
+
+            <!-- 輸入區域 -->
+            <div id="input-area">
+                <div class="input-row">
+                    <input type="text" id="message-input" placeholder="輸入您的訊息..." onkeypress="handleKeyPress(event)">
+                    <button id="send-btn" onclick="handleFormSubmit(event)">發送</button>
+                </div>
             </div>
         </div>
 
@@ -530,7 +474,8 @@
             selectedCategory: '',
             selectedModel: '',
             loading: false,
-            error: ''
+            error: '',
+            puterConnected: false
         };
 
         // 模型配置
@@ -570,94 +515,107 @@
 
         // DOM 元素
         const elements = {
-            themeToggle: document.getElementById('toggle-theme'),
-            modelCategory: document.getElementById('model-category'),
-            modelVersion: document.getElementById('model-version'),
-            functionBtns: document.querySelectorAll('.function-btn'),
             chatBox: document.getElementById('chat-box'),
-            chatForm: document.getElementById('chat-form'),
             messageInput: document.getElementById('message-input'),
-            imageInput: document.getElementById('image-input'),
-            fileBtn: document.getElementById('file-btn'),
             sendBtn: document.getElementById('send-btn'),
-            speakBtn: document.getElementById('speak-btn'),
-            additionalOptions: document.getElementById('additional-options'),
             loading: document.getElementById('loading'),
             errorMessage: document.getElementById('error-message'),
             connectionStatus: document.getElementById('connection-status'),
-            retryBtn: document.getElementById('retry-btn')
+            modelCategory: document.getElementById('model-category'),
+            modelVersion: document.getElementById('model-version'),
+            functionBtns: document.querySelectorAll('.function-btn'),
+            secondaryOptions: document.getElementById('secondary-options'),
+            imageInput: document.getElementById('image-input'),
+            puterStatus: document.getElementById('puter-status'),
+            puterStatusIcon: document.getElementById('puter-status-icon'),
+            puterStatusText: document.getElementById('puter-status-text')
         };
 
         // 初始化應用
         function initApp() {
-            console.log('正在初始化 AI 助手...');
-            setupEventListeners();
+            console.log('初始化應用...');
+            
+            // 檢查Puter連接狀態
+            checkPuterStatus();
+            
+            // 載入本地儲存的主題
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            appState.theme = savedTheme;
+            document.body.setAttribute('theme', savedTheme);
+            updateThemeIcon();
+            
             updateUI();
-            checkPuterAvailability();
         }
 
-        // 檢查 Puter 可用性
-        async function checkPuterAvailability() {
+        // 檢查Puter連接狀態
+        async function checkPuterStatus() {
+            console.log('檢查Puter連接狀態...');
+            
+            elements.puterStatusIcon.textContent = '⏳';
+            elements.puterStatusText.textContent = '正在檢查Puter AI服務...';
+            
             try {
+                // 測試基本的puter物件是否可用
                 if (typeof puter === 'undefined') {
-                    throw new Error('Puter SDK 未載入');
+                    throw new Error('Puter.js 未正確載入');
                 }
-                console.log('Puter SDK 已載入完成');
-                showMessage('系統', 'AI 服務已就緒，請選擇模型開始使用！', 'ai');
+                
+                console.log('Puter 物件可用，測試API連接...');
+                
+                // 使用一個簡單的測試來檢查API
+                const testResponse = await puter.ai.chat("Hi", { 
+                    model: 'gpt-4o-mini' // 使用較小的模型進行測試
+                });
+                
+                console.log('Puter API 測試成功:', testResponse);
+                
+                appState.puterConnected = true;
+                elements.puterStatusIcon.textContent = '✅';
+                elements.puterStatusText.textContent = 'Puter AI 服務連接正常';
+                elements.puterStatus.style.backgroundColor = '#d4edda';
+                elements.puterStatus.style.borderColor = '#c3e6cb';
+                elements.puterStatus.style.color = '#155724';
+                
+                console.log('Puter AI 服務連接成功');
             } catch (error) {
-                console.error('Puter 檢查失敗:', error);
-                showError('AI 服務初始化失敗，請重新載入頁面');
+                console.error('Puter 連接測試失敗:', error);
+                appState.puterConnected = false;
+                elements.puterStatusIcon.textContent = '❌';
+                elements.puterStatusText.textContent = `Puter AI 服務連接失敗: ${error.message}`;
+                elements.puterStatus.style.backgroundColor = '#f8d7da';
+                elements.puterStatus.style.borderColor = '#f5c6cb';
+                elements.puterStatus.style.color = '#721c24';
+                
+                // 如果是因為Puter.js未載入，提供解決建議
+                if (error.message.includes('Puter.js 未正確載入')) {
+                    elements.puterStatusText.textContent = 'Puter.js 庫未載入，請檢查網路連接並重新整理頁面';
+                }
             }
         }
 
-        // 設置事件監聽器
-        function setupEventListeners() {
-            // 主題切換
-            elements.themeToggle.addEventListener('click', toggleTheme);
-
-            // 模型選擇
-            elements.modelCategory.addEventListener('change', handleCategoryChange);
-            elements.modelVersion.addEventListener('change', handleModelChange);
-
-            // 功能按鈕
-            elements.functionBtns.forEach(btn => {
-                btn.addEventListener('click', () => handleFunctionChange(btn.dataset.function));
-            });
-
-            // 表單提交
-            elements.chatForm.addEventListener('submit', handleFormSubmit);
-
-            // 檔案按鈕
-            elements.fileBtn.addEventListener('click', () => elements.imageInput.click());
-            elements.imageInput.addEventListener('change', handleImageSelect);
-
-            // 重試按鈕
-            elements.retryBtn.addEventListener('click', hideError);
-        }
-
-        // 主題切換
+        // 切換主題
         function toggleTheme() {
-            appState.theme = appState.theme === 'dark' ? 'light' : 'dark';
-            updateTheme();
+            appState.theme = appState.theme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('theme', appState.theme);
+            localStorage.setItem('theme', appState.theme);
+            updateThemeIcon();
         }
 
-        function updateTheme() {
-            const isDark = appState.theme === 'dark';
-            document.body.className = isDark ? 'dark-theme' : '';
-            elements.themeToggle.textContent = isDark ? '☀️' : '🌙';
+        // 更新主題圖標
+        function updateThemeIcon() {
+            const themeBtn = document.getElementById('toggle-theme');
+            themeBtn.textContent = appState.theme === 'light' ? '🌙' : '☀️';
         }
 
-        // 處理模型類別變更
+        // 處理分類變更
         function handleCategoryChange() {
-            const category = elements.modelCategory.value;
-            appState.selectedCategory = category;
-            appState.selectedModel = '';
-            
+            appState.selectedCategory = elements.modelCategory.value;
+            appState.selectedModel = ''; // 重置模型選擇
             updateModelVersionSelect();
             updateUI();
         }
 
-        // 更新模型版本選項
+        // 更新模型版本選擇
         function updateModelVersionSelect() {
             const category = appState.selectedCategory;
             const versionSelect = elements.modelVersion;
@@ -680,6 +638,7 @@
         // 處理模型變更
         function handleModelChange() {
             appState.selectedModel = elements.modelVersion.value;
+            console.log('模型已選擇:', appState.selectedModel);
             updateUI();
         }
 
@@ -692,45 +651,52 @@
                 btn.classList.toggle('selected', btn.dataset.function === functionName);
             });
             
+            updateSecondaryOptions();
             updateUI();
+        }
+
+        // 更新次要選項顯示
+        function updateSecondaryOptions() {
+            // 隱藏所有次要選項
+            document.querySelectorAll('.secondary-option').forEach(option => {
+                option.style.display = 'none';
+            });
+            
+            // 根據當前功能顯示對應選項
+            switch (appState.currentFunction) {
+                case 'text-to-speech':
+                    document.getElementById('tts-options').style.display = 'block';
+                    elements.secondaryOptions.classList.add('show');
+                    break;
+                case 'text-to-image':
+                    document.getElementById('img-options').style.display = 'block';
+                    elements.secondaryOptions.classList.add('show');
+                    break;
+                case 'image-recognition':
+                    document.getElementById('img-recognition-options').style.display = 'block';
+                    elements.secondaryOptions.classList.add('show');
+                    break;
+                default:
+                    elements.secondaryOptions.classList.remove('show');
+            }
         }
 
         // 更新 UI
         function updateUI() {
-            const func = appState.currentFunction;
-            
-            // 更新輸入框佔位符
-            const placeholders = {
-                'chat': '在此輸入您的訊息...',
-                'image-recognition': '選擇圖片並描述您想了解什麼...',
-                'text-to-speech': '輸入要轉換為語音的文字...',
-                'text-to-image': '描述您想生成的圖片...'
-            };
-            elements.messageInput.placeholder = placeholders[func] || '輸入訊息...';
-            
-            // 顯示/隱藏功能相關元素
-            elements.fileBtn.classList.toggle('hidden', func !== 'image-recognition');
-            elements.speakBtn.classList.toggle('hidden', func !== 'text-to-speech');
-            elements.additionalOptions.classList.toggle('show', 
-                func === 'text-to-speech' || func === 'text-to-image');
-            
-            // 更新發送按鈕狀態
-            const canSubmit = appState.selectedModel && !appState.loading &&
-                             (func !== 'image-recognition' || elements.imageInput.files.length > 0);
+            const canSubmit = appState.selectedModel && !appState.loading && appState.puterConnected;
             elements.sendBtn.disabled = !canSubmit;
         }
 
-        // 處理圖片選擇
-        function handleImageSelect() {
+        // 處理圖片上傳
+        function handleImageUpload() {
             const file = elements.imageInput.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = function(e) {
                     showImagePreview(e.target.result);
                 };
                 reader.readAsDataURL(file);
             }
-            updateUI();
         }
 
         // 顯示圖片預覽
@@ -738,8 +704,16 @@
             const previewArea = document.getElementById('preview-area');
             const previewContent = document.getElementById('preview-content');
             
-            previewContent.innerHTML = `<img src="${imageSrc}" class="preview-image" alt="預覽圖片">`;
+            previewContent.innerHTML = `<img src="${imageSrc}" class="preview-image" alt="預覽圖片" style="max-width: 200px; border-radius: 8px;">`;
             previewArea.style.display = 'block';
+        }
+
+        // 處理鍵盤事件
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                handleFormSubmit(event);
+            }
         }
 
         // 處理表單提交
@@ -752,6 +726,11 @@
             const model = appState.selectedModel;
             if (!model) {
                 showError('請選擇 AI 模型');
+                return;
+            }
+
+            if (!appState.puterConnected) {
+                showError('Puter AI 服務連接異常，請檢查網路連接或稍後再試');
                 return;
             }
             
@@ -786,7 +765,10 @@
                 
                 // 清空輸入
                 elements.messageInput.value = '';
-                document.getElementById('preview-area').style.display = 'none';
+                const previewArea = document.getElementById('preview-area');
+                if (previewArea) {
+                    previewArea.style.display = 'none';
+                }
                 
             } catch (error) {
                 console.error('處理請求失敗:', error);
@@ -805,8 +787,32 @@
                     model: model
                 });
                 
+                console.log('API 回應:', response);
+                
+                // 根據不同的回應格式提取文字
+                let text = '';
+                if (response && typeof response === 'object') {
+                    if (response.message && response.message.content && Array.isArray(response.message.content)) {
+                        text = response.message.content[0]?.text || '';
+                    } else if (response.content) {
+                        text = response.content;
+                    } else if (response.text) {
+                        text = response.text;
+                    } else if (response.response) {
+                        text = response.response;
+                    } else {
+                        text = JSON.stringify(response);
+                    }
+                } else {
+                    text = String(response);
+                }
+                
+                if (!text) {
+                    throw new Error('AI 回應格式異常');
+                }
+                
                 return {
-                    text: response.message?.content?.[0]?.text || response.content || response.text || String(response),
+                    text: text,
                     success: true
                 };
             } catch (error) {
@@ -832,8 +838,30 @@
                     model: model
                 });
                 
+                console.log('圖片識別 API 回應:', response);
+                
+                // 提取回應文字
+                let text = '';
+                if (response && typeof response === 'object') {
+                    if (response.message && response.message.content && Array.isArray(response.message.content)) {
+                        text = response.message.content[0]?.text || '';
+                    } else if (response.content) {
+                        text = response.content;
+                    } else if (response.text) {
+                        text = response.text;
+                    } else {
+                        text = JSON.stringify(response);
+                    }
+                } else {
+                    text = String(response);
+                }
+                
+                if (!text) {
+                    throw new Error('圖片識別回應格式異常');
+                }
+                
                 return {
-                    text: response.message?.content?.[0]?.text || response.content || response.text || String(response),
+                    text: text,
                     success: true
                 };
             } catch (error) {
@@ -851,6 +879,12 @@
                 const response = await puter.ai.textToSpeech(text, {
                     voice: getVoiceForLanguage(language)
                 });
+                
+                console.log('語音生成 API 回應:', response);
+                
+                if (!response || !response.url) {
+                    throw new Error('語音生成回應格式異常');
+                }
                 
                 return {
                     text: `已生成語音內容: "${text}"`,
@@ -877,6 +911,12 @@
                     quality: 'standard',
                     style: 'vivid'
                 });
+                
+                console.log('圖片生成 API 回應:', response);
+                
+                if (!response || !response.url) {
+                    throw new Error('圖片生成回應格式異常');
+                }
                 
                 return {
                     text: `已生成圖片: "${prompt}"`,
@@ -906,7 +946,16 @@
         function showMessage(sender, content, type) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
-            messageDiv.innerHTML = `<div><strong>${sender}:</strong> ${content}</div>`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.innerHTML = `<strong>${sender}:</strong> ${escapeHtml(content)}`;
+            messageDiv.appendChild(contentDiv);
+            
+            // 添加時間戳
+            const timeDiv = document.createElement('div');
+            timeDiv.style.cssText = 'font-size: 11px; color: #888; margin-top: 5px;';
+            timeDiv.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(timeDiv);
             
             elements.chatBox.appendChild(messageDiv);
             elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
@@ -917,19 +966,30 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message ai';
             
-            let content = `<div><strong>AI:</strong> ${response.text}</div>`;
+            const contentDiv = document.createElement('div');
+            contentDiv.innerHTML = `<strong>AI:</strong> ${escapeHtml(response.text)}`;
+            messageDiv.appendChild(contentDiv);
             
             // 添加語音播放器
             if (response.audioUrl) {
-                content += `<audio controls><source src="${response.audioUrl}" type="audio/mpeg">您的瀏覽器不支援音頻播放。</audio>`;
+                const audioDiv = document.createElement('div');
+                audioDiv.innerHTML = `<audio controls style="margin: 10px 0;"><source src="${response.audioUrl}" type="audio/mpeg">您的瀏覽器不支援音頻播放。</audio>`;
+                messageDiv.appendChild(audioDiv);
             }
             
             // 添加生成的圖片
             if (response.imageUrl) {
-                content += `<img src="${response.imageUrl}" alt="生成的圖片" style="max-width: 300px; border-radius: 8px;">`;
+                const imgDiv = document.createElement('div');
+                imgDiv.innerHTML = `<img src="${response.imageUrl}" alt="生成的圖片" style="max-width: 300px; border-radius: 8px; margin: 10px 0;">`;
+                messageDiv.appendChild(imgDiv);
             }
             
-            messageDiv.innerHTML = content;
+            // 添加時間戳
+            const timeDiv = document.createElement('div');
+            timeDiv.style.cssText = 'font-size: 11px; color: #888; margin-top: 5px;';
+            timeDiv.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(timeDiv);
+            
             elements.chatBox.appendChild(messageDiv);
             elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
         }
@@ -956,8 +1016,20 @@
             elements.connectionStatus.classList.remove('show');
         }
 
+        // HTML 轉義函數
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // 頁面載入完成後初始化
         document.addEventListener('DOMContentLoaded', initApp);
+        
+        // Puter.js 載入完成後重新檢查狀態
+        window.addEventListener('load', function() {
+            setTimeout(checkPuterStatus, 1000);
+        });
     </script>
 </body>
 </html>

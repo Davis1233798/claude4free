@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puter AI API 測試</title>
+    <!-- 引入 Puter.js -->
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Puter AI API 功能測試</h1>
+    
+    <div class="test-section">
+        <h2>📊 Puter 連接狀態</h2>
+        <button onclick="checkPuterConnection()">檢查連接</button>
+        <div id="connection-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>💬 聊天功能測試</h2>
+        <select id="chat-model">
+            <option value="gpt-4o-mini">GPT-4o Mini</option>
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+        </select>
+        <input type="text" id="chat-input" placeholder="輸入測試訊息..." value="你好，請簡單介紹自己">
+        <button onclick="testChat()">測試聊天</button>
+        <div id="chat-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔊 語音生成測試</h2>
+        <input type="text" id="tts-input" placeholder="輸入要轉換的文字..." value="這是一個語音測試">
+        <select id="tts-voice">
+            <option value="zh-TW-HsiaoChenNeural">中文（繁體）</option>
+            <option value="zh-CN-XiaoxiaoNeural">中文（簡體）</option>
+            <option value="en-US-JennyNeural">English</option>
+        </select>
+        <button onclick="testTTS()">測試語音生成</button>
+        <div id="tts-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎨 圖片生成測試</h2>
+        <input type="text" id="img-input" placeholder="描述要生成的圖片..." value="一隻可愛的小貓在花園裡玩耍">
+        <select id="img-size">
+            <option value="512x512">512x512</option>
+            <option value="1024x1024">1024x1024</option>
+        </select>
+        <button onclick="testImageGeneration()">測試圖片生成</button>
+        <div id="img-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🖼️ 圖片識別測試</h2>
+        <input type="file" id="img-upload" accept="image/*">
+        <input type="text" id="img-question" placeholder="對圖片的問題..." value="這張圖片中有什麼？">
+        <button onclick="testImageRecognition()">測試圖片識別</button>
+        <div id="img-rec-result" class="result"></div>
+    </div>
+
+    <script>
+        // 檢查Puter連接
+        async function checkPuterConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.textContent = '正在檢查連接...';
+            resultDiv.className = 'result';
+            
+            try {
+                if (typeof puter === 'undefined') {
+                    throw new Error('Puter.js 未載入');
+                }
+                
+                // 測試基本API調用
+                const response = await puter.ai.chat("Hello", { model: 'gpt-4o-mini' });
+                
+                resultDiv.textContent = `✅ Puter 連接正常\n回應: ${JSON.stringify(response, null, 2)}`;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                resultDiv.textContent = `❌ 連接失敗: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 測試聊天功能
+        async function testChat() {
+            const resultDiv = document.getElementById('chat-result');
+            const model = document.getElementById('chat-model').value;
+            const message = document.getElementById('chat-input').value;
+            
+            if (!message.trim()) {
+                resultDiv.textContent = '請輸入測試訊息';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在測試聊天功能...';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await puter.ai.chat(message, { model: model });
+                
+                let text = '';
+                if (response && typeof response === 'object') {
+                    if (response.message && response.message.content && Array.isArray(response.message.content)) {
+                        text = response.message.content[0]?.text || '';
+                    } else if (response.content) {
+                        text = response.content;
+                    } else if (response.text) {
+                        text = response.text;
+                    } else {
+                        text = JSON.stringify(response);
+                    }
+                } else {
+                    text = String(response);
+                }
+                
+                resultDiv.textContent = `✅ 聊天測試成功\n模型: ${model}\n問題: ${message}\n回應: ${text}`;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                resultDiv.textContent = `❌ 聊天測試失敗: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 測試語音生成
+        async function testTTS() {
+            const resultDiv = document.getElementById('tts-result');
+            const text = document.getElementById('tts-input').value;
+            const voice = document.getElementById('tts-voice').value;
+            
+            if (!text.trim()) {
+                resultDiv.textContent = '請輸入要轉換的文字';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在生成語音...';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await puter.ai.textToSpeech(text, { voice: voice });
+                
+                if (response && response.url) {
+                    resultDiv.innerHTML = `✅ 語音生成成功<br>
+                        文字: ${text}<br>
+                        語音: ${voice}<br>
+                        <audio controls><source src="${response.url}" type="audio/mpeg">音頻播放不支援</audio>`;
+                    resultDiv.className = 'result success';
+                } else {
+                    throw new Error('未收到音頻URL');
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ 語音生成失敗: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 測試圖片生成
+        async function testImageGeneration() {
+            const resultDiv = document.getElementById('img-result');
+            const prompt = document.getElementById('img-input').value;
+            const size = document.getElementById('img-size').value;
+            
+            if (!prompt.trim()) {
+                resultDiv.textContent = '請輸入圖片描述';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在生成圖片...';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await puter.ai.textToImage(prompt, { 
+                    size: size,
+                    quality: 'standard',
+                    style: 'vivid'
+                });
+                
+                if (response && response.url) {
+                    resultDiv.innerHTML = `✅ 圖片生成成功<br>
+                        描述: ${prompt}<br>
+                        尺寸: ${size}<br>
+                        <img src="${response.url}" alt="生成的圖片" style="max-width: 300px; border-radius: 8px; margin-top: 10px;">`;
+                    resultDiv.className = 'result success';
+                } else {
+                    throw new Error('未收到圖片URL');
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ 圖片生成失敗: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 測試圖片識別
+        async function testImageRecognition() {
+            const resultDiv = document.getElementById('img-rec-result');
+            const fileInput = document.getElementById('img-upload');
+            const question = document.getElementById('img-question').value;
+            
+            if (!fileInput.files[0]) {
+                resultDiv.textContent = '請選擇圖片文件';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            if (!question.trim()) {
+                resultDiv.textContent = '請輸入對圖片的問題';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在識別圖片...';
+            resultDiv.className = 'result';
+            
+            try {
+                const file = fileInput.files[0];
+                const response = await puter.ai.chat([
+                    { type: 'text', text: question },
+                    { type: 'image', image: file }
+                ], {
+                    model: 'gpt-4o'
+                });
+                
+                let text = '';
+                if (response && typeof response === 'object') {
+                    if (response.message && response.message.content && Array.isArray(response.message.content)) {
+                        text = response.message.content[0]?.text || '';
+                    } else if (response.content) {
+                        text = response.content;
+                    } else if (response.text) {
+                        text = response.text;
+                    } else {
+                        text = JSON.stringify(response);
+                    }
+                } else {
+                    text = String(response);
+                }
+                
+                resultDiv.textContent = `✅ 圖片識別成功\n問題: ${question}\n回應: ${text}`;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                resultDiv.textContent = `❌ 圖片識別失敗: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 頁面載入後自動檢查連接
+        window.addEventListener('load', function() {
+            setTimeout(checkPuterConnection, 1000);
+        });
+    </script>
+</body>
+</html> 
