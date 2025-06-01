@@ -46,26 +46,17 @@
             background-color: #2a2a2a;
         }
         #toggle-theme {
-            position: absolute;
-            top: 20px;
-            right: 20px;
             background: none;
             border: none;
-            font-size: 24px;
             cursor: pointer;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.3s ease;
+            font-size: 24px;
+            padding: 8px;
+            transition: transform 0.3s ease;
+            margin-left: auto;
+            margin-right: 10px;
         }
         #toggle-theme:hover {
-            background-color: rgba(0, 123, 255, 0.1);
-        }
-        body[theme="dark"] #toggle-theme:hover {
-            background-color: rgba(74, 144, 226, 0.1);
+            transform: scale(1.1);
         }
         #navbar h2 {
             margin: 0;
@@ -307,7 +298,7 @@
             color: #666;
         }
         body[theme="dark"] .option-header p {
-            color: #aaa;
+            color: #999;
         }
         .option-controls {
             display: flex;
@@ -344,16 +335,19 @@
             gap: 20px;
         }
         .ad-box {
-            padding: 20px;
-            text-align: center;
-            background-color: #f9f9f9;
-            border: 1px dashed #ddd;
-            border-radius: 8px;
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #666;
-            margin: 10px 0;
+            font-size: 14px;
+            border-radius: 10px;
         }
         body[theme="dark"] .ad-box {
-            background-color: #2a2a2a;
+            background: linear-gradient(45deg, #333, #444);
             border-color: #555;
             color: #999;
         }
@@ -411,50 +405,6 @@
                 align-items: stretch;
             }
         }
-
-        /* 新增：广告位置样式 */
-        .ad-container {
-            margin: 15px 0;
-            text-align: center;
-        }
-        
-        .sidebar-ad {
-            display: none; /* 默认隐藏侧边栏广告，避免在小屏幕上影响用户体验 */
-        }
-        
-        @media (min-width: 1200px) {
-            .sidebar-ad {
-                display: block; /* 在大屏幕上显示侧边栏广告 */
-            }
-            
-            .container {
-                margin: 0 200px; /* 为侧边栏广告留出空间 */
-            }
-        }
-        
-        .top-banner, .bottom-banner {
-            max-width: 100%;
-            overflow: hidden;
-        }
-        
-        .square-ad {
-            display: inline-block;
-        }
-        
-        /* 响应式广告 */
-        @media (max-width: 768px) {
-            .ad-container amp-ad[width="728"] {
-                width: 100%;
-                max-width: 320px;
-                height: 50px;
-            }
-            
-            .square-ad amp-ad {
-                width: 100%;
-                max-width: 250px;
-                height: 200px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -464,49 +414,7 @@
     </div>
 
     <div id="container">
-        <!-- 新增：顶部横幅广告 -->
-        <div class="ad-container top-banner" style="text-align: center; margin: 20px 0;">
-            <amp-ad width="728"
-                    height="90"
-                    type="adsense"
-                    data-ad-client="ca-pub-1234567890"
-                    data-ad-slot="1234567890"
-                    data-auto-ads-type="adsense"
-                    data-ad-region="header">
-            </amp-ad>
-        </div>
-
-        <div class="header">
-            <h1>Claude 4 Free - 免費AI助手</h1>
-            <p>體驗最新的Claude 4、GPT-4o、Gemini等AI模型</p>
-            <button id="toggle-theme" onclick="toggleTheme()">🌙</button>
-        </div>
-
         <div id="chat-container">
-            <!-- 新增：左侧边栏广告 -->
-            <div class="sidebar-ad left-sidebar" style="position: fixed; left: 10px; top: 50%; transform: translateY(-50%); z-index: 1000; width: 160px;">
-                <amp-ad width="160"
-                        height="600"
-                        type="adsense"
-                        data-ad-client="ca-pub-1234567890"
-                        data-ad-slot="1234567891"
-                        data-auto-ads-type="adsense"
-                        data-ad-region="sidebar-left">
-                </amp-ad>
-            </div>
-
-            <!-- 新增：右侧边栏广告 -->
-            <div class="sidebar-ad right-sidebar" style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 1000; width: 160px;">
-                <amp-ad width="160"
-                        height="600"
-                        type="adsense"
-                        data-ad-client="ca-pub-1234567890"
-                        data-ad-slot="1234567892"
-                        data-auto-ads-type="adsense"
-                        data-ad-region="sidebar-right">
-                </amp-ad>
-            </div>
-
             <!-- 模型選擇 -->
             <div class="model-selector">
                 <select id="model-category" onchange="handleCategoryChange()">
@@ -597,18 +505,6 @@
             <!-- 聊天區域 -->
             <div id="chat-box"></div>
 
-            <!-- 新增：聊天框下方的横幅广告 -->
-            <div class="ad-container mid-content" style="text-align: center; margin: 20px 0;">
-                <amp-ad width="728"
-                        height="90"
-                        type="adsense"
-                        data-ad-client="ca-pub-1234567890"
-                        data-ad-slot="1234567893"
-                        data-auto-ads-type="adsense"
-                        data-ad-region="mid-content">
-                </amp-ad>
-            </div>
-
             <!-- 載入狀態 -->
             <div class="loading" id="loading">⏳ AI 正在思考中...</div>
 
@@ -633,35 +529,11 @@
                     <button id="send-btn" onclick="handleFormSubmit(event)">發送</button>
                 </div>
             </div>
-
-            <!-- 新增：内容中间的方形广告 -->
-            <div class="ad-container square-ad" style="text-align: center; margin: 20px 0;">
-                <amp-ad width="300"
-                        height="250"
-                        type="adsense"
-                        data-ad-client="ca-pub-1234567890"
-                        data-ad-slot="1234567895"
-                        data-auto-ads-type="adsense"
-                        data-ad-region="content-square">
-                </amp-ad>
-            </div>
         </div>
 
         <div class="ad-placeholder">
             <div class="ad-box">廣告位置</div>
             <div class="ad-box">廣告位置</div>
-        </div>
-
-        <!-- 新增：底部横幅广告 -->
-        <div class="ad-container bottom-banner" style="text-align: center; margin: 30px 0;">
-            <amp-ad width="728"
-                    height="90"
-                    type="adsense"
-                    data-ad-client="ca-pub-1234567890"
-                    data-ad-slot="1234567894"
-                    data-auto-ads-type="adsense"
-                    data-ad-region="footer">
-            </amp-ad>
         </div>
     </div>
 
@@ -738,54 +610,30 @@
         function initApp() {
             console.log('初始化應用...');
             
-            // 檢查Puter連接狀態
-            checkPuterStatus();
-            
             // 載入本地儲存的主題
             const savedTheme = localStorage.getItem('theme') || 'light';
-            appState.theme = savedTheme;
-            document.body.setAttribute('theme', savedTheme);
-            updateThemeIcon();
+            setTheme(savedTheme);
             
-            // 設置初始UI狀態
-            updateSecondaryOptions();
-            updateModelVisibility();
+            // 靜默檢測Puter連接狀態（後台運行）
+            silentCheckPuterStatus();
+            
             updateUI();
         }
 
-        // 檢查Puter連接狀態 (修改为后台检测)
-        async function checkPuterStatus() {
-            console.log('後台檢查Puter連接狀態...');
-            
+        // 靜默檢測Puter連接狀態
+        async function silentCheckPuterStatus() {
             try {
-                // 測試基本的puter物件是否可用
                 if (typeof puter === 'undefined') {
-                    throw new Error('Puter.js 未正確載入');
+                    console.warn('Puter.js 未載入');
+                    return;
                 }
                 
-                console.log('Puter 物件可用，測試API連接...');
-                
-                // 使用一個簡單的測試來檢查API
-                const testResponse = await puter.ai.chat("Hi", { 
-                    model: 'gpt-4o-mini' // 使用較小的模型進行測試
-                });
-                
-                console.log('Puter API 測試成功:', testResponse);
-                
-                appState.puterConnected = true;
-                console.log('✅ Puter AI 服務連接成功');
+                // 簡單測試Puter AI服務
+                await puter.ai.chat("Hello", { model: 'gpt-4o-mini' });
+                console.log('✅ Puter AI 服務連接正常');
             } catch (error) {
-                console.error('❌ Puter 連接測試失敗:', error);
-                appState.puterConnected = false;
-                
-                // 如果是因為Puter.js未載入，在控制台提供解決建議
-                if (error.message.includes('Puter.js 未正確載入')) {
-                    console.warn('請檢查網路連接並重新整理頁面');
-                }
+                console.warn('⚠️ Puter AI 服務連接異常:', error.message);
             }
-            
-            // 更新UI状态
-            updateUI();
         }
 
         // 切換主題
@@ -894,7 +742,7 @@
             // 對於特殊功能，不需要模型選擇
             const specialFunctions = ['text-to-speech', 'text-to-image', 'image-recognition'];
             const needsModel = !specialFunctions.includes(appState.currentFunction);
-                
+            
             const canSubmit = needsModel 
                 ? (appState.selectedModel && !appState.loading && appState.puterConnected)
                 : (!appState.loading && appState.puterConnected);
@@ -1075,63 +923,51 @@
             }
         }
 
-        // 處理圖片識別 (修复API调用)
+        // 處理圖片識別
         async function handleImageRecognition(message, model) {
             try {
                 const imageFile = elements.imageInput.files[0];
                 if (!imageFile) {
-                    throw new Error('請先上傳圖片');
+                    throw new Error('請先上傳圖片文件');
                 }
                 
-                console.log('正在使用Puter.ai進行圖片識別...');
+                console.log('正在使用Puter.ai.img2txt進行圖片識別...');
                 
-                // 修复：使用正确的 Puter AI API
-                let response;
-                try {
-                    // 方式1：使用 chat 接口處理圖片
-                    response = await puter.ai.chat([
-                        { type: 'text', text: message || '請描述這張圖片的內容' },
-                        { type: 'image', image: imageFile }
-                    ], {
-                        model: 'gpt-4o' // 使用支持視覺的模型
-                    });
-                } catch (error) {
-                    console.log('嘗試使用備用圖片識別方法...');
-                    // 方式2：如果上述方法失敗，嘗試其他API
-                    try {
-                        response = await puter.ai.textToSpeech('圖片識別功能正在維護中，請稍後再試。', 'zh-TW');
-                        throw new Error('圖片識別功能暫時不可用，請稍後再試');
-                    } catch {
-                        throw new Error('圖片識別功能暫時不可用，請稍後再試');
-                    }
-                }
+                // 根據Puter API文檔，img2txt直接接受File對象並返回字符串
+                const ocrResult = await puter.ai.img2txt(imageFile, false);
                 
-                console.log('圖片識別 API 回應:', response);
+                console.log('圖片識別 API 回應:', ocrResult);
                 
-                // 處理回應
-                let text = '';
-                if (response && response.message && response.message.content) {
-                    if (Array.isArray(response.message.content)) {
-                        text = response.message.content[0]?.text || '';
-                    } else {
-                        text = response.message.content;
-                    }
-                } else if (response && response.text) {
-                    text = response.text;
-                } else if (typeof response === 'string') {
-                    text = response;
-                } else {
-                    text = '圖片識別完成，但回應格式異常';
-                }
-                
-                if (!text || text.trim() === '') {
+                // img2txt直接返回提取到的文字字符串
+                if (!ocrResult || typeof ocrResult !== 'string' || ocrResult.trim() === '') {
                     throw new Error('圖片識別未返回有效結果');
                 }
                 
-                // 如果用戶有輸入問題，組合回答
-                const finalText = message 
-                    ? `圖片內容識別結果：${text}\n\n針對您的問題"${message}"的回答：基於識別到的內容，${text}`
-                    : `圖片內容：${text}`;
+                // 如果用戶有輸入問題，使用AI分析OCR結果
+                let finalText = '';
+                if (message && message.trim()) {
+                    // 使用AI分析OCR結果並回答用戶問題
+                    const analysisPrompt = `圖片中識別到的文字內容：\n${ocrResult}\n\n用戶問題：${message}\n\n請基於識別到的文字內容回答用戶的問題。`;
+                    const analysisResponse = await puter.ai.chat(analysisPrompt, { model: model });
+                    
+                    // 解析AI回應
+                    let analysisText = '';
+                    if (analysisResponse && typeof analysisResponse === 'object') {
+                        if (analysisResponse.message && analysisResponse.message.content && Array.isArray(analysisResponse.message.content)) {
+                            analysisText = analysisResponse.message.content[0]?.text || '';
+                        } else if (analysisResponse.content) {
+                            analysisText = analysisResponse.content;
+                        } else if (analysisResponse.text) {
+                            analysisText = analysisResponse.text;
+                        }
+                    } else {
+                        analysisText = String(analysisResponse);
+                    }
+                    
+                    finalText = `圖片文字識別結果：\n${ocrResult}\n\nAI分析回答：\n${analysisText}`;
+                } else {
+                    finalText = `圖片文字識別結果：\n${ocrResult}`;
+                }
                 
                 return {
                     text: finalText,
@@ -1143,58 +979,47 @@
             }
         }
 
-        // 處理語音生成 (修复API调用)
+        // 處理語音生成
         async function handleTextToSpeech(text) {
             try {
                 const language = document.getElementById('tts-language').value || 'zh-TW';
                 
                 console.log('正在生成語音...');
                 
-                // 修复：使用正确的 Puter AI API
-                let response;
-                try {
-                    // 方式1：直接使用 textToSpeech API
-                    response = await puter.ai.textToSpeech(text, {
-                        voice: getVoiceForLanguage(language),
-                        language: language
-                    });
-                } catch (error) {
-                    console.log('嘗試使用備用語音生成方法...');
-                    // 方式2：使用簡化參數
-                    try {
-                        response = await puter.ai.textToSpeech(text, language);
-                    } catch {
-                        throw new Error('語音生成功能暫時不可用，請稍後再試');
-                    }
-                }
+                // 根據Puter API文檔，txt2speech接受文字和語言參數，返回音頻流
+                const audioStream = await puter.ai.txt2speech(text, language, false);
                 
-                console.log('語音生成 API 回應:', response);
+                console.log('語音生成 API 回應:', audioStream);
                 
-                // 處理不同類型的回應
-                if (response instanceof HTMLAudioElement) {
-                    // 直接返回音頻元素
+                // txt2speech返回MP3音頻流，需要創建音頻元素
+                const audioElement = document.createElement('audio');
+                audioElement.controls = true;
+                audioElement.style.width = '100%';
+                audioElement.style.margin = '10px 0';
+                
+                // 如果audioStream是Blob，轉換為URL
+                if (audioStream instanceof Blob) {
+                    const audioUrl = URL.createObjectURL(audioStream);
+                    audioElement.src = audioUrl;
+                } else if (audioStream && audioStream.play) {
+                    // 如果已經是音頻元素，直接使用
                     return {
                         text: `已生成語音內容: "${text}"`,
-                        audioElement: response,
+                        audioElement: audioStream,
                         success: true
                     };
-                } else if (response && response.url) {
-                    // 返回音頻URL
-                    return {
-                        text: `已生成語音內容: "${text}"`,
-                        audioUrl: response.url,
-                        success: true
-                    };
-                } else if (typeof response === 'string' && response.startsWith('data:')) {
-                    // Base64音頻數據
-                    return {
-                        text: `已生成語音內容: "${text}"`,
-                        audioUrl: response,
-                        success: true
-                    };
+                } else if (typeof audioStream === 'string') {
+                    // 如果是URL字符串
+                    audioElement.src = audioStream;
                 } else {
                     throw new Error('語音生成返回格式異常');
                 }
+                
+                return {
+                    text: `已生成語音內容: "${text}"`,
+                    audioElement: audioElement,
+                    success: true
+                };
             } catch (error) {
                 console.error('語音生成錯誤:', error);
                 throw new Error(`語音生成功能暫時不可用: ${error.message}`);
@@ -1330,11 +1155,6 @@
 
         // 頁面載入完成後初始化
         document.addEventListener('DOMContentLoaded', initApp);
-        
-        // Puter.js 載入完成後重新檢查狀態
-        window.addEventListener('load', function() {
-            setTimeout(checkPuterStatus, 1000);
-        });
     </script>
 </body>
 </html>
