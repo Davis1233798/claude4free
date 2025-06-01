@@ -375,9 +375,6 @@
                     <option value="openai">OpenAI</option>
                     <option value="anthropic">Anthropic</option>
                     <option value="google">Google</option>
-                    <option value="meta">Meta</option>
-                    <option value="mistral">Mistral</option>
-                    <option value="deepseek">DeepSeek</option>
                     <option value="other">其他</option>
                 </select>
                 
@@ -498,18 +495,6 @@
                 'gemini-2.0-flash': 'Gemini 2.0 Flash',
                 'gemini-1.5-flash': 'Gemini 1.5 Flash'
             },
-            meta: {
-                'llama-3.1-405b': 'Llama 3.1 405B',
-                'llama-3.1-70b': 'Llama 3.1 70B'
-            },
-            mistral: {
-                'mistral-large': 'Mistral Large',
-                'mistral-medium': 'Mistral Medium'
-            },
-            deepseek: {
-                'deepseek-v3': 'DeepSeek V3',
-                'deepseek-coder': 'DeepSeek Coder'
-            },
             other: {
                 'x-ai/grok-3-beta': 'Grok Beta'
             }
@@ -573,7 +558,7 @@
                 
                 appState.puterConnected = true;
                 elements.puterStatusIcon.textContent = '✅';
-                elements.puterStatusText.textContent = 'Puter AI 服務連接正常';
+                elements.puterStatusText.textContent = 'Puter AI 服務連接正常 (支援 OpenAI、Anthropic、Google 模型)';
                 elements.puterStatus.style.backgroundColor = '#d4edda';
                 elements.puterStatus.style.borderColor = '#c3e6cb';
                 elements.puterStatus.style.color = '#155724';
@@ -785,6 +770,12 @@
         async function handleChat(message, model) {
             try {
                 console.log(`正在調用 ${model} 進行對話...`);
+                
+                // 檢查模型是否可用
+                if (!isModelAvailable(model)) {
+                    throw new Error(`模型 ${model} 暫時不可用，請選擇其他模型`);
+                }
+                
                 const response = await puter.ai.chat(message, {
                     model: model
                 });
@@ -833,42 +824,75 @@
                 };
             } catch (error) {
                 console.error('聊天 API 錯誤:', error);
-                throw new Error(`聊天功能暫時不可用: ${error.message}`);
+                
+                // 根據錯誤類型提供更具體的錯誤信息
+                let errorMessage = '聊天功能暫時不可用';
+                if (error.message.includes('不可用')) {
+                    errorMessage = error.message;
+                } else if (error.message.includes('model')) {
+                    errorMessage = '所選模型暫時不可用，請選擇其他模型';
+                } else {
+                    errorMessage = `聊天功能暫時不可用: ${error.message}`;
+                }
+                
+                throw new Error(errorMessage);
             }
+        }
+
+        // 檢查模型是否可用
+        function isModelAvailable(model) {
+            // 當前可用的模型列表
+            const availableModels = [
+                'gpt-4o', 'gpt-4o-mini', 'gpt-4.5-preview', 'o1', 'o1-mini', 'o3-mini',
+                'claude-3-5-sonnet', 'claude-3-7-sonnet',
+                'gemini-2.0-flash', 'gemini-1.5-flash',
+                'x-ai/grok-3-beta'
+            ];
+            
+            return availableModels.includes(model);
         }
 
         // 處理圖片識別
         async function handleImageRecognition(message, model) {
             try {
                 const imageFile = elements.imageInput.files[0];
+                
                 if (!imageFile) {
-                    // 如果沒有上傳圖片，使用Puter的img2txt API
-                    console.log('使用Puter img2txt API進行圖片識別...');
-                    const response = await puter.ai.img2txt(message);
-                    
-                    console.log('圖片識別 API 回應:', response);
-                    
-                    return {
-                        text: response || '圖片識別完成',
-                        success: true
-                    };
-                } else {
-                    // 如果有上傳圖片，使用Puter的img2txt API處理檔案
-                    console.log('正在識別上傳的圖片...');
-                    const response = await puter.ai.img2txt(imageFile);
-                    
-                    console.log('圖片識別結果:', response);
-                    
-                    const resultText = message ? `${message}\n\n圖片內容：${response}` : `圖片內容：${response}`;
-                    
-                    return {
-                        text: resultText,
-                        success: true
-                    };
+                    throw new Error('請選擇要識別的圖片文件');
                 }
+                
+                console.log('正在識別上傳的圖片...');
+                
+                // 使用Puter的img2txt API處理上傳的圖片
+                const response = await puter.ai.img2txt(imageFile);
+                
+                console.log('圖片識別結果:', response);
+                
+                let resultText;
+                if (message && message.trim()) {
+                    resultText = `${message}\n\n圖片識別結果：${response}`;
+                } else {
+                    resultText = `圖片識別結果：${response}`;
+                }
+                
+                return {
+                    text: resultText,
+                    success: true
+                };
             } catch (error) {
                 console.error('圖片識別錯誤:', error);
-                throw new Error(`圖片識別功能暫時不可用: ${error.message}`);
+                
+                // 提供更詳細的錯誤信息
+                let errorMessage = '圖片識別功能暫時不可用';
+                if (error.message.includes('選擇圖片')) {
+                    errorMessage = '請先選擇要識別的圖片文件';
+                } else if (error.message.includes('img2txt')) {
+                    errorMessage = '圖片識別服務暫時不可用，請稍後再試';
+                } else {
+                    errorMessage = `圖片識別錯誤: ${error.message}`;
+                }
+                
+                throw new Error(errorMessage);
             }
         }
 
