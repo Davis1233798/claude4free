@@ -1,11 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html ⚡ lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>免費與Claude 4及其他AI對話</title>
     <meta name="description" content="免費與Claude 4、GPT-4o、Gemini等AI互動，支援圖片識別、語音生成、圖片生成。">
     <meta name="keywords" content="AI, claude 4, GPT-4, Gemini, 圖片識別, 語音生成, 圖片生成, free chat gpt, free claude 4 opus, free claude opus, free claude, free claude 4, free claude 4 sonnet, free claude 3.7 opus, free gpt 4.5, free gpt 4.1, free grok, free mistral">
+    
+    <!-- AMP Auto Ads -->
+    <script async custom-element="amp-auto-ads"
+            src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+    
     <style>
         body {
             background-color: white;
@@ -253,23 +259,13 @@
             flex-direction: column;
             gap: 20px;
         }
-        .ad-placeholder {
+        .ad-container {
             width: 160px;
             height: 300px;
-            background-color: #f0f0f0;
-            border: 2px dashed #ccc;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            color: #888;
-            text-align: center;
             border-radius: 8px;
-        }
-        body.dark-mode .ad-placeholder {
-            background-color: #333;
-            border-color: #555;
-            color: #aaa;
         }
         #loading {
             display: none;
@@ -308,7 +304,7 @@
                 flex-direction: row;
                 justify-content: center;
             }
-            .ad-placeholder {
+            .ad-container {
                 width: 120px;
                 height: 200px;
             }
@@ -322,6 +318,11 @@
     </style>
 </head>
 <body>
+    <!-- AMP Auto Ads -->
+    <amp-auto-ads type="adsense"
+            data-ad-client="ca-pub-5692204516534246">
+    </amp-auto-ads>
+
     <div id="navbar">
         <h2>🤖 AI 多功能助手</h2>
         <button id="toggle-theme" title="切換黑白模式">🌙</button>
@@ -329,7 +330,15 @@
 
     <div id="container">
         <div class="ad-sidebar left">
-            <div class="ad-placeholder">廣告位</div>
+            <div class="ad-container">
+                <!-- AdSense 廣告 -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-5692204516534246"
+                     data-ad-slot="1234567890"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
         </div>
 
         <div id="chat-container">
@@ -386,7 +395,15 @@
         </div>
 
         <div class="ad-sidebar right">
-            <div class="ad-placeholder">廣告位</div>
+            <div class="ad-container">
+                <!-- AdSense 廣告 -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-5692204516534246"
+                     data-ad-slot="0987654321"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
         </div>
     </div>
 
@@ -435,7 +452,7 @@
                 'DeepSeek Reasoner': 'deepseek-reasoner'
             },
             other: {
-                'Grok Beta': 'grok-beta'
+                'Grok Beta': 'x-ai/grok-3-beta'
             }
         };
 
@@ -461,6 +478,12 @@
             imgSize: document.getElementById('img-size'),
             imgStyle: document.getElementById('img-style')
         };
+
+        // 初始化 AdSense
+        window.addEventListener('load', function() {
+            (adsbygoogle = window.adsbygoogle || []).push({});
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        });
 
         elements.toggleTheme.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
@@ -591,8 +614,24 @@
         }
 
         async function handleChat(message, model) {
-            const response = await puter.ai.chat(message, { model: model, stream: false });
-            return { text: response };
+            try {
+                const response = await puter.ai.chat(message, { model: model });
+                
+                // 根據 Puter.js 文檔，正確處理響應
+                if (response && response.message && response.message.content) {
+                    return { text: response.message.content };
+                } else if (typeof response === 'string') {
+                    return { text: response };
+                } else if (response && response.content) {
+                    return { text: response.content };
+                } else {
+                    // 如果響應格式不明確，嘗試直接返回
+                    return { text: String(response) };
+                }
+            } catch (error) {
+                console.error('Chat error:', error);
+                throw new Error('聊天請求失敗: ' + error.message);
+            }
         }
 
         async function handleImageRecognition(message, model) {
@@ -600,33 +639,59 @@
             if (!fileInput.files[0]) {
                 throw new Error('請先選擇圖片');
             }
-            const ocrResult = await puter.ai.img2txt(fileInput.files[0]);
-            const fullPrompt = `圖片中的文字內容：${ocrResult}\n\n用戶問題：${message}`;
-            const response = await puter.ai.chat(fullPrompt, { model: model, stream: false });
-            return { 
-                text: `圖片識別結果：\n\n提取的文字：${ocrResult}\n\n分析回答：${response}`,
-                media: fileInput.files[0]
-            };
+            
+            try {
+                const ocrResult = await puter.ai.img2txt(fileInput.files[0]);
+                const fullPrompt = `圖片中的文字內容：${ocrResult}\n\n用戶問題：${message}`;
+                const response = await puter.ai.chat(fullPrompt, { model: model });
+                
+                let aiResponse = '';
+                if (response && response.message && response.message.content) {
+                    aiResponse = response.message.content;
+                } else if (typeof response === 'string') {
+                    aiResponse = response;
+                } else {
+                    aiResponse = String(response);
+                }
+                
+                return { 
+                    text: `圖片識別結果：\n\n提取的文字：${ocrResult}\n\n分析回答：${aiResponse}`,
+                    media: fileInput.files[0]
+                };
+            } catch (error) {
+                console.error('Image recognition error:', error);
+                throw new Error('圖片識別失敗: ' + error.message);
+            }
         }
 
         async function handleTextToSpeech(text) {
-            const language = elements.ttsLanguage.value || 'zh-TW';
-            const audio = await puter.ai.txt2speech(text, language);
-            return {
-                text: `已生成語音 (${language})`,
-                media: audio
-            };
+            try {
+                const language = elements.ttsLanguage.value || 'zh-TW';
+                const audio = await puter.ai.txt2speech(text, language);
+                return {
+                    text: `已生成語音 (${language})`,
+                    media: audio
+                };
+            } catch (error) {
+                console.error('TTS error:', error);
+                throw new Error('語音生成失敗: ' + error.message);
+            }
         }
 
         async function handleTextToImage(prompt) {
-            const size = elements.imgSize.value || '512x512';
-            const style = elements.imgStyle.value;
-            const fullPrompt = style ? `${prompt}, ${style} style` : prompt;
-            const imageBlob = await puter.ai.txt2img(fullPrompt, size);
-            return {
-                text: `已生成圖片：${prompt}`,
-                media: imageBlob
-            };
+            try {
+                const size = elements.imgSize.value || '512x512';
+                const style = elements.imgStyle.value;
+                const fullPrompt = style ? `${prompt}, ${style} style` : prompt;
+                const imageBlob = await puter.ai.txt2img(fullPrompt, size);
+                return {
+                    text: `已生成圖片：${prompt}`,
+                    media: imageBlob
+                };
+            } catch (error) {
+                console.error('Image generation error:', error);
+                throw new Error('圖片生成失敗: ' + error.message);
+            }
         }
 
         async function speakText(text) {
