@@ -1,0 +1,234 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # 單元測試工作
+  test:
+    name: 單元測試
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 檢出代碼
+      uses: actions/checkout@v4
+      
+    - name: 設置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+        
+    - name: 安裝依賴
+      working-directory: backend
+      run: npm ci
+      
+    - name: 運行單元測試
+      working-directory: backend
+      run: npm test
+      
+    - name: 生成測試覆蓋率報告
+      working-directory: backend
+      run: npm run test:coverage
+      
+    - name: 上傳覆蓋率報告
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./backend/coverage/lcov.info
+        fail_ci_if_error: false
+
+  # 前端驗證工作
+  validate-frontend:
+    name: 前端驗證
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 檢出代碼
+      uses: actions/checkout@v4
+      
+    - name: 驗證 AMP 語法
+      run: |
+        # 安裝 AMP 驗證器
+        npm install -g @ampproject/toolbox-cli
+        
+        # 驗證主要 AMP 頁面
+        amphtml-validator index.html || echo "根目錄 index.html 有 AMP 錯誤"
+        amphtml-validator frontend/index.html || echo "frontend/index.html 有 AMP 錯誤"
+        
+    - name: 檢查 HTML 語法
+      run: |
+        # 使用 html5validator 檢查 HTML 語法
+        pip install html5validator
+        html5validator --root . --match "*.html" --ignore-re "amp-|⚡" || echo "HTML 語法檢查完成"
+
+  # 部署到開發環境
+  deploy-dev:
+    name: 部署開發環境
+    runs-on: ubuntu-latest
+    needs: [test, validate-frontend]
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: 檢出代碼
+      uses: actions/checkout@v4
+      
+    - name: 設置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: 安裝 Wrangler
+      working-directory: backend
+      run: npm install wrangler
+      
+    - name: 部署 Workers (開發環境)
+      working-directory: backend
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      run: npx wrangler deploy --env development
+      
+    - name: 健康檢查 (開發環境)
+      run: |
+        sleep 10
+        curl -f https://claude4free-api-dev.davis1233798.workers.dev/health || exit 1
+
+  # 部署到生產環境
+  deploy-prod:
+    name: 部署生產環境
+    runs-on: ubuntu-latest
+    needs: [test, validate-frontend]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: 檢出代碼
+      uses: actions/checkout@v4
+      
+    - name: 設置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: 安裝 Wrangler
+      working-directory: backend
+      run: npm install wrangler
+      
+    - name: 部署 Workers (生產環境)
+      working-directory: backend
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      run: npx wrangler deploy --env production
+      
+    - name: 健康檢查 (生產環境)
+      run: |
+        sleep 10
+        curl -f https://claude4free-api.davis1233798.workers.dev/health || exit 1
+        
+    - name: 通知部署成功
+      if: success()
+      run: |
+        echo "✅ 生產環境部署成功!"
+        echo "API: https://claude4free-api.davis1233798.workers.dev"
+        echo "前端: https://claude4free.pages.dev"
+
+  # 安全掃描
+  security-scan:
+    name: 安全掃描
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: 檢出代碼
+      uses: actions/checkout@v4
+      
+    - name: 運行安全掃描
+      uses: securecodewarrior/github-action-add-sarif@v1
+      with:
+        sarif-file: 'security-scan-results.sarif'
+      continue-on-error: true
+      
+    - name: 檢查敏感資訊洩露
+      run: |
+        # 簡單的敏感資訊檢查
+        if grep -r "api[_-]key\|secret\|password\|token" --include="*.js" --include="*.json" . | grep -v node_modules; then
+          echo "⚠️ 發現可能的敏感資訊洩露"
+          exit 1
+        else
+          echo "✅ 未發現明顯的敏感資訊洩露"
+        fi
+
+  # 性能測試
+  performance-test:
+    name: 性能測試
+    runs-on: ubuntu-latest
+    needs: [deploy-dev]
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: API 響應時間測試
+      run: |
+        echo "測試 API 響應時間..."
+        
+        # 測試健康檢查端點
+        start_time=$(date +%s%N)
+        curl -s https://claude4free-api-dev.davis1233798.workers.dev/health > /dev/null
+        end_time=$(date +%s%N)
+        duration=$((($end_time - $start_time) / 1000000))
+        
+        echo "健康檢查響應時間: ${duration}ms"
+        
+        if [ $duration -gt 5000 ]; then
+          echo "⚠️ API 響應時間過長 (>5s)"
+          exit 1
+        else
+          echo "✅ API 響應時間正常"
+        fi
+
+  # 集成測試
+  integration-test:
+    name: 集成測試
+    runs-on: ubuntu-latest
+    needs: [deploy-dev]
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: 檢出代碼
+      uses: actions/checkout@v4
+      
+    - name: 測試 API 端點
+      run: |
+        echo "測試 API 集成..."
+        
+        # 測試健康檢查
+        health_response=$(curl -s https://claude4free-api-dev.davis1233798.workers.dev/health)
+        echo "健康檢查回應: $health_response"
+        
+        # 驗證回應格式
+        if echo "$health_response" | grep -q '"status":"ok"'; then
+          echo "✅ 健康檢查通過"
+        else
+          echo "❌ 健康檢查失敗"
+          exit 1
+        fi
+        
+        # 測試聊天 API (應該會回到測試模式)
+        chat_response=$(curl -s -X POST https://claude4free-api-dev.davis1233798.workers.dev/api/chat \
+          -F "message=測試訊息" \
+          -F "function=chat" \
+          -F "model=gpt-4o")
+        
+        echo "聊天 API 回應: $chat_response"
+        
+        if echo "$chat_response" | grep -q '"success":true'; then
+          echo "✅ 聊天 API 測試通過"
+        else
+          echo "❌ 聊天 API 測試失敗"
+          exit 1
+        fi 

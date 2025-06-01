@@ -1,30 +1,32 @@
 {
   "name": "claude4free-api",
-  "version": "1.0.0",
-  "description": "Claude4Free API - Cloudflare Workers版本",
+  "version": "2.0.0",
+  "description": "Claude4Free 多功能AI API服務",
   "main": "api-server.js",
   "type": "module",
   "scripts": {
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "deploy:dev": "wrangler deploy --env development",
+    "deploy:prod": "wrangler deploy --env production",
     "dev": "wrangler dev --env development",
-    "deploy": "wrangler deploy --env production",
-    "deploy-dev": "wrangler deploy --env development",
-    "tail": "wrangler tail --env production",
-    "test": "wrangler dev --local"
+    "tail:dev": "wrangler tail claude4free-api-dev",
+    "tail:prod": "wrangler tail claude4free-api"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.0.0",
+    "vitest": "^1.0.0",
+    "wrangler": "^4.18.0"
   },
   "keywords": [
     "ai",
     "claude",
+    "gpt",
     "api",
-    "cloudflare",
-    "workers"
+    "cloudflare-workers",
+    "serverless"
   ],
-  "author": "Davis",
-  "license": "MIT",
-  "devDependencies": {
-    "wrangler": "^3.0.0"
-  },
-  "dependencies": {},
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "author": "Claude4Free Team",
+  "license": "MIT"
 } 
