@@ -1,243 +1,229 @@
-# 🤖 Claude4Free - 免費AI多功能助手
+# Claude4Free - 免費AI多功能助手
 
-一個基於AMP技術的免費AI聊天網站，支援與Claude 4、GPT-4o、Gemini等多種AI模型對話。
+🚀 **免費使用各種頂級AI模型**：Claude 4、GPT-4o、Gemini、Llama等，支援對話、圖片識別、語音生成、圖片生成等功能。
 
-## ✨ 特色功能
+## 🌟 特色功能
 
-- 🗨️ **多AI模型對話** - 支援OpenAI、Anthropic、Google、Meta等主流AI模型
-- 🖼️ **圖片識別** - OCR文字提取與圖片內容分析
-- 🔊 **語音生成** - 文字轉語音功能
-- 🎨 **圖片生成** - AI生成圖片功能
-- 🌙 **深色模式** - 支援明暗主題切換
-- 📱 **響應式設計** - 完美適配手機、平板、桌面
-- ⚡ **AMP優化** - 極速載入與SEO友好
-- 💰 **Google AdSense** - 內建廣告系統
+- **多模型支援**: OpenAI、Anthropic、Google、Meta、Mistral、DeepSeek等頂級AI模型
+- **多功能整合**: 
+  - 💬 智能對話
+  - 🖼️ 圖片識別與分析
+  - 🔊 文字轉語音
+  - 🎨 文字轉圖片
+- **響應式設計**: 完美支援桌面和移動設備
+- **深色/淺色主題**: 自適應護眼模式
+- **純前端架構**: 基於 Puter.js，無需後端服務器
+- **完全免費**: 無需註冊，無使用限制
 
-## 🏗️ 技術架構
+## 🚀 技術架構
 
-### 前端
-- **AMP HTML** - 快速載入的網頁框架
-- **AMP Components** - 互動元件與表單處理
-- **響應式CSS** - 適配各種裝置尺寸
+### 新架構 (2024)
+- **前端**: 純 HTML5 + JavaScript + Puter.js
+- **AI服務**: 直接集成 Puter.js SDK
+- **部署**: Cloudflare Pages 靜態託管
+- **特點**: 無服務器，完全前端化
 
-### 後端
-- **Node.js + Express** - API伺服器
-- **Puter.js Integration** - AI功能整合
-- **Multer** - 檔案上傳處理
+### 支援的AI模型
 
-## 🚀 快速開始
+#### OpenAI 系列
+- GPT-4o / GPT-4o Mini
+- GPT-4.5 Preview
+- o1 / o1 Mini / o3 Mini
 
-### 1. 克隆專案
+#### Anthropic 系列
+- Claude 3.5 Sonnet
+- Claude 3.7 Sonnet
+
+#### Google 系列
+- Gemini 2.0 Flash
+- Gemini 1.5 Flash
+
+#### Meta 系列
+- Llama 3.1 405B / 70B
+
+#### 其他模型
+- Mistral Large / Medium
+- DeepSeek V3 / Coder
+- xAI Grok Beta
+
+## 🛠️ 快速開始
+
+### 方式一：直接訪問
+訪問線上版本：[https://claude4free.pages.dev](https://claude4free.pages.dev)
+
+### 方式二：本地運行
 ```bash
-git clone <repository-url>
+# 克隆專案
+git clone https://github.com/your-username/claude4free.git
 cd claude4free
+
+# 使用任何HTTP服務器運行
+# 方法1: 使用Python
+python -m http.server 8000
+
+# 方法2: 使用Node.js
+npx serve .
+
+# 方法3: 使用Live Server (VS Code擴展)
+# 直接右鍵index.html -> Open with Live Server
 ```
 
-### 2. 安裝依賴
-```bash
-npm install
-```
+然後訪問 `http://localhost:8000`
 
-### 3. 啟動API伺服器
-```bash
-# 開發模式
-npm run dev
-
-# 生產模式
-npm start
-```
-
-### 4. 部署前端
-將 `index.html` 部署到支援AMP的主機服務商（如Netlify、Vercel等）
-
-## 📋 環境需求
-
-- Node.js 14.0.0 或更高版本
-- 支援AMP的網頁主機
-- Google AdSense帳戶（用於廣告）
-
-## 🔧 配置設定
-
-### API伺服器配置
-在 `api-server.js` 中修改以下設定：
-
-```javascript
-const PUTER_API_BASE = 'https://api.puter.com'; // Puter API端點
-const PORT = process.env.PORT || 3000; // 伺服器端口
-```
-
-### AdSense配置
-在 `index.html` 中更新您的AdSense客戶ID：
-
-```html
-data-ad-client="ca-pub-YOUR-CLIENT-ID"
-```
-
-## 📁 專案結構
+## 📂 項目結構
 
 ```
 claude4free/
-├── index.html          # AMP網頁主檔案
-├── api-server.js       # Node.js API伺服器
-├── package.json        # 專案依賴配置
-├── README.md          # 專案說明文件
-└── docs/              # 文檔資料夾
+├── index.html              # 主頁面文件
+├── README.md              # 項目說明
+├── DEPLOYMENT.md          # 部署指南  
+├── frontend/              # 前端資源 (備用)
+│   ├── index.html
+│   ├── _headers
+│   └── _redirects
+└── cloudflare-pages.toml  # Cloudflare Pages 配置
 ```
 
-## 🔗 API端點
+## 🎯 使用方法
 
-### POST `/api/chat`
-主要聊天API端點
+1. **選擇AI模型**
+   - 從模型類型下拉選單選擇提供商
+   - 再選擇具體的模型版本
 
-**參數：**
-- `message` - 用戶訊息
-- `function` - 功能類型（chat、image-recognition、text-to-speech、text-to-image）
-- `model` - AI模型名稱
-- `image` - 圖片檔案（圖片識別功能）
-- `tts-language` - 語音語言
-- `img-size` - 圖片尺寸
-- `img-style` - 圖片風格
+2. **選擇功能**
+   - 💬 對話：與AI進行文字對話
+   - 🖼️ 圖片識別：上傳圖片並提問
+   - 🔊 語音生成：將文字轉換為語音
+   - 🎨 圖片生成：用文字描述生成圖片
 
-**回應：**
-```json
-{
-  "text": "AI回應內容",
-  "success": true,
-  "audioUrl": "語音檔案URL（語音功能）",
-  "imageUrl": "圖片URL（圖片生成功能）"
-}
+3. **開始使用**
+   - 輸入您的問題或需求
+   - 點擊發送按鈕
+   - 等待AI回應
+
+## 🔧 技術細節
+
+### Puter.js 集成
+
+本項目使用 Puter.js SDK 直接在前端調用AI服務：
+
+```javascript
+// 基本對話
+const response = await puter.ai.chat(message, {
+    model: 'gpt-4o'
+});
+
+// 圖片識別
+const response = await puter.ai.chat([
+    { type: 'text', text: question },
+    { type: 'image', image: imageFile }
+], { model: 'gpt-4o' });
+
+// 語音生成
+const response = await puter.ai.textToSpeech(text, {
+    voice: 'zh-TW-HsiaoChenNeural'
+});
+
+// 圖片生成
+const response = await puter.ai.textToImage(prompt, {
+    size: '1024x1024',
+    style: 'vivid'
+});
 ```
 
-### GET `/health`
-健康檢查端點
+### 特色功能
 
-## 🎨 自訂功能
-
-### 新增AI模型
-在 `index.html` 的 AMP State 中新增模型配置：
-
-```json
-"modelConfig": {
-  "newProvider": {
-    "Model Name": "model-id"
-  }
-}
-```
-
-### 修改主題樣式
-在 `<style amp-custom>` 中自訂CSS樣式。
-
-## 🐛 問題排除
-
-### 常見問題
-
-1. **AdSense廣告不顯示**
-   - 確認AdSense帳戶已啟用
-   - 檢查廣告單元ID是否正確
-   - 等待Google審核通過
-
-2. **API調用失敗**
-   - 檢查Puter.js API端點是否正確
-   - 確認網路連接正常
-   - 檢查API伺服器是否運行
-
-3. **AMP驗證錯誤**
-   - 使用[AMP驗證器](https://validator.ampproject.org/)檢查
-   - 確保所有腳本都是AMP允許的
-
-### 錯誤日誌
-API伺服器會在控制台輸出詳細的錯誤日誌，便於除錯。
-
-## 📈 性能優化
-
-- 使用CDN加速靜態資源
-- 啟用Gzip壓縮
-- 優化圖片尺寸與格式
-- 使用AMP Cache
-
-## 🔐 安全性
-
-- API端點CORS配置
-- 檔案上傳安全檢查
-- 輸入驗證與清理
-- 錯誤資訊過濾
-
-## 📄 授權條款
-
-MIT License - 請參考LICENSE檔案了解詳細資訊。
-
-## 🤝 貢獻指南
-
-歡迎提交Issue和Pull Request來改善專案！
-
-## 📞 聯繫方式
-
-如有問題或建議，請透過GitHub Issues聯繫我們。
-
----
-
-⭐ 如果這個專案對您有幫助，請給我們一個星星！
+- **響應式設計**: 自適應不同螢幕尺寸
+- **深色模式**: 護眼的深色主題
+- **圖片預覽**: 上傳圖片即時預覽
+- **錯誤處理**: 友善的錯誤提示和重試機制
+- **載入狀態**: 清晰的處理進度指示
 
 ## 🚀 部署指南
 
-### 後端 API（已部署）
-- **網址**: https://claude4free-api.davis1233798.workers.dev
-- **部署平台**: Cloudflare Workers
-- **狀態**: ✅ 已部署完成
+### Cloudflare Pages 部署
 
-### 前端網站部署到 Cloudflare Pages
-
-#### 方法一：通過 Dashboard 上傳（推薦）
-1. 進入 [Cloudflare Pages](https://dash.cloudflare.com/pages)
-2. 選擇你的現有專案或創建新專案
-3. 上傳以下文件：
-   - `index.html`
-   - `_headers`
-   - `_redirects`
-4. 等待部署完成
-
-#### 方法二：通過 Git 連接
-1. 將檔案推送到 GitHub repository
-2. 在 Cloudflare Pages 連接你的 repository
-3. 自動部署
-
-### 部署後的網址
-- **前端網址**: `https://你的專案名稱.pages.dev`
-- **自定義域名**: 可在 Cloudflare Pages 設定
-
-## 🔧 Google AdSense 設定
-
-### 必要步驟：
-1. **申請 AdSense 帳戶**
-2. **驗證網站所有權**
-3. **替換廣告位 ID**：
-   ```html
-   data-ad-client="ca-pub-5692204516534246"  <!-- 你的廣告客戶端ID -->
-   data-ad-slot="1234567890"                  <!-- 替換為真實廣告位ID -->
+1. **準備**
+   ```bash
+   git clone https://github.com/your-username/claude4free.git
+   cd claude4free
    ```
 
-### AdSense 配置檢查清單：
-- ✅ 添加 `meta` 標籤
-- ✅ 配置 `amp-auto-ads`
-- ✅ 設置多個廣告位
-- ✅ 添加 fallback 內容
-- ✅ 使用響應式廣告格式
+2. **Cloudflare Pages**
+   - 登入 Cloudflare Dashboard
+   - 進入 Pages 服務
+   - 連接 GitHub 倉庫
+   - 設置構建配置：
+     - 構建命令：留空
+     - 輸出目錄：`/`
+     - 根目錄：`/`
 
-## 📋 使用流程
+3. **自定義域名**（可選）
+   - 在 Cloudflare Pages 設置中添加自定義域名
+   - 配置DNS記錄
 
-1. 用戶訪問前端網站：`https://你的專案名稱.pages.dev`
-2. 前端發送請求到後端：`https://claude4free-api.davis1233798.workers.dev/api/chat`
-3. 後端處理 AI 請求並返回結果
-4. 前端顯示結果給用戶
+### 其他託管平台
 
-## 🛠️ 故障排除
+- **Vercel**: 連接 GitHub 倉庫直接部署
+- **Netlify**: 拖拽文件夾到 Netlify 或連接 Git
+- **GitHub Pages**: 啟用 Pages 功能，選擇主分支
 
-### 如果 API 請求失敗：
-1. 檢查後端 Worker 是否正常運行
-2. 確認 CORS 設定正確
-3. 檢查網路連接
+## 🔧 自定義配置
 
-### 如果廣告不顯示：
-1. 確認 AdSense 帳戶已審核通過
-2. 檢查廣告位 ID 是否正確
-3. 等待廣告審核完成（可能需要幾小時到幾天） 
+### 修改模型列表
+在 `index.html` 中的 `modelConfig` 對象：
+
+```javascript
+const modelConfig = {
+    openai: {
+        'gpt-4o': 'GPT-4o',
+        'new-model': '新模型名稱'  // 添加新模型
+    }
+    // ... 其他分類
+};
+```
+
+### 修改界面主題
+在 `<style>` 標籤中修改CSS變數：
+
+```css
+:root {
+    --primary-color: #007bff;
+    --background-color: white;
+    --text-color: black;
+}
+```
+
+## 🤝 貢獻指南
+
+1. Fork 本倉庫
+2. 創建特性分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m '新增驚人的功能'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 開啟 Pull Request
+
+## 📝 開發注意事項
+
+- 本項目使用 Puter.js SDK，需要網路連接
+- 所有AI功能依賴 Puter 的免費服務
+- 圖片上傳有大小限制（通常為10MB以內）
+- 建議在HTTPS環境下使用以確保所有功能正常
+
+## 📄 許可證
+
+本項目採用 MIT 許可證 - 查看 [LICENSE](LICENSE) 文件了解詳情
+
+## 🙏 致謝
+
+- [Puter.js](https://puter.com) - 提供免費的AI API服務
+- [Cloudflare Pages](https://pages.cloudflare.com) - 免費的靜態網站託管
+- 各大AI模型提供商的技術支持
+
+## 📞 支持與反饋
+
+- 問題報告：[GitHub Issues](https://github.com/your-username/claude4free/issues)
+- 功能建議：[GitHub Discussions](https://github.com/your-username/claude4free/discussions)
+
+---
+
+**免責聲明**: 本項目僅供學習和研究用途。請遵守各AI服務提供商的使用條款和當地法律法規。 

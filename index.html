@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ⚡ lang="zh-TW">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +7,10 @@
     <meta name="description" content="免費與Claude 4、GPT-4o、Gemini等AI互動，支援圖片識別、語音生成、圖片生成。">
     <meta name="keywords" content="AI, claude 4, GPT-4, Gemini, 圖片識別, 語音生成, 圖片生成, free chat gpt, free claude 4 opus, free claude opus, free claude, free claude 4, free claude 4 sonnet, free claude 3.7 opus, free gpt 4.5, free gpt 4.1, free grok, free mistral">
     
-    <!-- AMP Required -->
-    <script async src="https://cdn.ampproject.org/v0.js"></script>
+    <!-- Puter.js SDK -->
+    <script src="https://js.puter.com/v2/"></script>
     
-    <!-- AMP Components -->
-    <script async custom-element="amp-form" src="https://cdn.ampproject.org/v0/amp-form-0.1.js"></script>
-    <script async custom-element="amp-selector" src="https://cdn.ampproject.org/v0/amp-selector-0.1.js"></script>
-    <script async custom-element="amp-bind" src="https://cdn.ampproject.org/v0/amp-bind-0.1.js"></script>
-    
-    <style amp-custom>
+    <style>
         body {
             background-color: white;
             color: black;
@@ -118,7 +113,7 @@
             transition: all 0.3s ease;
             font-size: 14px;
         }
-        .function-btn[selected] {
+        .function-btn.selected {
             background-color: #007bff;
             color: white;
         }
@@ -126,7 +121,7 @@
             border-color: #4a90e2;
             color: #4a90e2;
         }
-        body.dark-theme .function-btn[selected] {
+        body.dark-theme .function-btn.selected {
             background-color: #4a90e2;
         }
         #chat-box {
@@ -211,25 +206,29 @@
             font-size: 14px;
             transition: all 0.3s ease;
         }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .file-btn {
             background-color: #28a745;
             color: white;
         }
-        .file-btn:hover {
+        .file-btn:hover:not(:disabled) {
             background-color: #218838;
         }
         .send-button {
             background-color: #007bff;
             color: white;
         }
-        .send-button:hover {
+        .send-button:hover:not(:disabled) {
             background-color: #0056b3;
         }
         .speak-button {
             background-color: #6f42c1;
             color: white;
         }
-        .speak-button:hover {
+        .speak-button:hover:not(:disabled) {
             background-color: #5a32a3;
         }
         .additional-options {
@@ -317,6 +316,10 @@
             padding: 10px;
             border-radius: 5px;
             margin: 10px 0;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
         }
         body.dark-theme .error-message {
             background-color: #721c24;
@@ -406,29 +409,12 @@
     </style>
 </head>
 <body>
-    <!-- AMP State -->
-    <amp-state id="appState">
-        <script type="application/json">
-        {
-            "theme": "light",
-            "currentFunction": "chat",
-            "selectedCategory": "",
-            "selectedModel": "",
-            "loading": false,
-            "error": ""
-        }
-        </script>
-    </amp-state>
-
     <div id="navbar">
         <h2>🤖 AI 多功能助手</h2>
-        <button id="toggle-theme" 
-                on="tap:AMP.setState({appState: {theme: appState.theme == 'dark' ? 'light' : 'dark'}})"
-                [text]="appState.theme == 'dark' ? '☀️' : '🌙'"
-                title="切換黑白模式">🌙</button>
+        <button id="toggle-theme" title="切換黑白模式">🌙</button>
     </div>
 
-    <div id="container" [class]="appState.theme == 'dark' ? 'dark-theme' : ''">
+    <div id="container">
         <div class="ad-placeholder">
             <div class="ad-box">廣告位置</div>
             <div class="ad-box">廣告位置</div>
@@ -439,73 +425,28 @@
             <p>支援對話、圖片識別、語音生成、圖片生成等多種 AI 功能</p>
             
             <div class="model-selector">
-                <amp-selector name="model-category" 
-                            layout="container"
-                            on="select:AMP.setState({appState: {selectedCategory: event.targetOption, selectedModel: '', error: ''}})"
-                            single>
-                    <select>
-                        <option value="">選擇 AI 模型類型</option>
-                        <option value="openai">⭐ OpenAI</option>
-                        <option value="anthropic">🔥 Anthropic</option>
-                        <option value="google">🌟 Google</option>
-                        <option value="meta">🦙 Meta</option>
-                        <option value="mistral">🚀 Mistral</option>
-                        <option value="deepseek">🧠 DeepSeek</option>
-                        <option value="other">🔮 其他</option>
-                    </select>
-                </amp-selector>
+                <select id="model-category">
+                    <option value="">選擇 AI 模型類型</option>
+                    <option value="openai">⭐ OpenAI</option>
+                    <option value="anthropic">🔥 Anthropic</option>
+                    <option value="google">🌟 Google</option>
+                    <option value="meta">🦙 Meta</option>
+                    <option value="mistral">🚀 Mistral</option>
+                    <option value="deepseek">🧠 DeepSeek</option>
+                    <option value="other">🔮 其他</option>
+                </select>
                 
-                <amp-selector name="model-version" 
-                            layout="container"
-                            on="select:AMP.setState({appState: {selectedModel: event.targetOption, error: ''}})"
-                            single>
-                    <select [disabled]="!appState.selectedCategory">
-                        <option value="">請先選擇模型類型</option>
-                        <option value="gpt-4o" 
-                                [hidden]="appState.selectedCategory != 'openai'">GPT-4o</option>
-                        <option value="gpt-4o-mini" 
-                                [hidden]="appState.selectedCategory != 'openai'">GPT-4o Mini</option>
-                        <option value="gpt-4.5-preview" 
-                                [hidden]="appState.selectedCategory != 'openai'">GPT-4.5 Preview</option>
-                        <option value="o1" 
-                                [hidden]="appState.selectedCategory != 'openai'">o1</option>
-                        <option value="o1-mini" 
-                                [hidden]="appState.selectedCategory != 'openai'">o1 Mini</option>
-                        <option value="claude-3-5-sonnet" 
-                                [hidden]="appState.selectedCategory != 'anthropic'">Claude 3.5 Sonnet</option>
-                        <option value="claude-3-7-sonnet" 
-                                [hidden]="appState.selectedCategory != 'anthropic'">Claude 3.7 Sonnet</option>
-                        <option value="gemini-2.0-flash" 
-                                [hidden]="appState.selectedCategory != 'google'">Gemini 2.0 Flash</option>
-                        <option value="gemini-1.5-flash" 
-                                [hidden]="appState.selectedCategory != 'google'">Gemini 1.5 Flash</option>
-                        <option value="llama-3.1-405b" 
-                                [hidden]="appState.selectedCategory != 'meta'">Llama 3.1 405B</option>
-                        <option value="llama-3.1-70b" 
-                                [hidden]="appState.selectedCategory != 'meta'">Llama 3.1 70B</option>
-                        <option value="mistral-large" 
-                                [hidden]="appState.selectedCategory != 'mistral'">Mistral Large</option>
-                        <option value="mistral-medium" 
-                                [hidden]="appState.selectedCategory != 'mistral'">Mistral Medium</option>
-                        <option value="deepseek-v3" 
-                                [hidden]="appState.selectedCategory != 'deepseek'">DeepSeek V3</option>
-                        <option value="deepseek-coder" 
-                                [hidden]="appState.selectedCategory != 'deepseek'">DeepSeek Coder</option>
-                        <option value="x-ai/grok-3-beta" 
-                                [hidden]="appState.selectedCategory != 'other'">Grok Beta</option>
-                    </select>
-                </amp-selector>
+                <select id="model-version" disabled>
+                    <option value="">請先選擇模型類型</option>
+                </select>
             </div>
 
-            <amp-selector class="function-buttons" 
-                         layout="container"
-                         on="select:AMP.setState({appState: {currentFunction: event.targetOption, error: ''}})"
-                         single>
-                <button option="chat" selected class="function-btn">💬 對話</button>
-                <button option="image-recognition" class="function-btn">🖼️ 圖片識別</button>
-                <button option="text-to-speech" class="function-btn">🔊 語音生成</button>
-                <button option="text-to-image" class="function-btn">🎨 圖片生成</button>
-            </amp-selector>
+            <div class="function-buttons">
+                <button class="function-btn selected" data-function="chat">💬 對話</button>
+                <button class="function-btn" data-function="image-recognition">🖼️ 圖片識別</button>
+                <button class="function-btn" data-function="text-to-speech">🔊 語音生成</button>
+                <button class="function-btn" data-function="text-to-image">🎨 圖片生成</button>
+            </div>
 
             <div id="chat-box">
                 <div class="message ai">
@@ -513,91 +454,65 @@
                 </div>
             </div>
             
-            <div class="error-message" 
-                 [hidden]="!appState.error"
-                 [text]="appState.error">
-            </div>
+            <div class="error-message" id="error-message"></div>
             
             <div class="preview-area" id="preview-area">
                 <p><strong>預覽：</strong></p>
                 <div id="preview-content"></div>
             </div>
 
-            <form method="post" 
-                  action-xhr="https://claude4free-api.davis1233798.workers.dev/api/chat" 
-                  on="submit:AMP.setState({appState: {loading: true, error: ''}});
-                      submit-success:AMP.setState({appState: {loading: false}});
-                      submit-error:AMP.setState({appState: {loading: false, error: event.response ? '伺服器回應錯誤：' + (event.response.error || 'HTTP ' + event.response.status) : '網路連接失敗，請檢查網路連接或稍後再試'}})">
+            <form id="chat-form">
                 <div class="input-row">
                     <input type="file" 
-                           name="image" 
+                           id="image-input" 
                            accept="image/*" 
-                           class="hidden"
-                           [class]="appState.currentFunction == 'image-recognition' ? '' : 'hidden'">
+                           class="hidden">
                     <button type="button" 
-                            class="file-btn"
-                            [class]="appState.currentFunction == 'image-recognition' ? 'file-btn' : 'file-btn hidden'"
-                            on="tap:AMP.setState({appState: {error: ''}})">📎 選擇圖片</button>
+                            id="file-btn"
+                            class="file-btn hidden">📎 選擇圖片</button>
                     
                     <input type="text" 
-                           name="message"
-                           [placeholder]="appState.currentFunction == 'chat' ? '在此輸入您的訊息...' : 
-                                         appState.currentFunction == 'image-recognition' ? '選擇圖片並描述您想了解什麼...' :
-                                         appState.currentFunction == 'text-to-speech' ? '輸入要轉換為語音的文字...' :
-                                         '描述您想生成的圖片...'"
-                           required
-                           on="input-debounced:AMP.setState({appState: {error: ''}})">
+                           id="message-input"
+                           placeholder="在此輸入您的訊息..."
+                           required>
                     
                     <button type="submit" 
-                            class="send-button"
-                            [disabled]="!appState.selectedModel || appState.loading || (appState.currentFunction == 'image-recognition' && !document.querySelector('input[name=image]').files.length)"
-                            on="tap:AMP.setState({appState: {error: ''}})">發送</button>
+                            id="send-btn"
+                            class="send-button">發送</button>
                     <button type="button" 
-                            class="speak-button"
-                            [class]="appState.currentFunction == 'text-to-speech' ? 'speak-button' : 'speak-button hidden'"
-                            on="tap:AMP.setState({appState: {error: ''}})">🎤 朗讀</button>
+                            id="speak-btn"
+                            class="speak-button hidden">🎤 朗讀</button>
                 </div>
                 
-                <div class="additional-options" 
-                     [class]="'additional-options ' + (appState.currentFunction == 'text-to-speech' || appState.currentFunction == 'text-to-image' ? 'show' : '')">
+                <div class="additional-options" id="additional-options">
                     <input type="text" 
-                           name="tts-language" 
+                           id="tts-language" 
                            class="option-input" 
                            placeholder="語言 (如: zh-TW)" 
-                           value="zh-TW"
-                           on="input-debounced:AMP.setState({appState: {error: ''}})">
+                           value="zh-TW">
                     <input type="text" 
-                           name="img-size" 
+                           id="img-size" 
                            class="option-input" 
                            placeholder="圖片尺寸 (如: 512x512)" 
-                           value="512x512"
-                           on="input-debounced:AMP.setState({appState: {error: ''}})">
+                           value="512x512">
                     <input type="text" 
-                           name="img-style" 
+                           id="img-style" 
                            class="option-input" 
-                           placeholder="圖片風格 (如: 寫實、卡通)"
-                           on="input-debounced:AMP.setState({appState: {error: ''}})">
+                           placeholder="圖片風格 (如: 寫實、卡通)">
                 </div>
-                
-                <input type="hidden" name="function" [value]="appState.currentFunction || 'chat'">
-                <input type="hidden" name="model" [value]="appState.selectedModel">
             </form>
 
-            <div class="loading" 
-                 [class]="'loading ' + (appState.loading ? 'show' : '')"
-                 id="loading">正在處理中...</div>
+            <div class="loading" id="loading">正在處理中...</div>
                  
             <!-- 連接狀態指示器 -->
-            <div class="connection-status" 
-                 [class]="'connection-status ' + (appState.error && appState.error.includes('網路連接失敗') ? 'show' : '')"
-                 id="connection-status">
+            <div class="connection-status" id="connection-status">
                 <div class="status-indicator">
                     <span class="status-dot offline"></span>
-                    <span class="status-text">網路連接異常，請檢查網路設定</span>
+                    <span class="status-text">API 連接異常，請重試</span>
                 </div>
                 <button type="button" 
                         class="retry-button"
-                        on="tap:AMP.setState({appState: {error: '', loading: false}})">重試</button>
+                        id="retry-btn">重試</button>
             </div>
         </div>
 
@@ -606,5 +521,443 @@
             <div class="ad-box">廣告位置</div>
         </div>
     </div>
+
+    <script>
+        // 應用狀態管理
+        const appState = {
+            theme: 'light',
+            currentFunction: 'chat',
+            selectedCategory: '',
+            selectedModel: '',
+            loading: false,
+            error: ''
+        };
+
+        // 模型配置
+        const modelConfig = {
+            openai: {
+                'gpt-4o': 'GPT-4o',
+                'gpt-4o-mini': 'GPT-4o Mini',
+                'gpt-4.5-preview': 'GPT-4.5 Preview',
+                'o1': 'o1',
+                'o1-mini': 'o1 Mini',
+                'o3-mini': 'o3 Mini'
+            },
+            anthropic: {
+                'claude-3-5-sonnet': 'Claude 3.5 Sonnet',
+                'claude-3-7-sonnet': 'Claude 3.7 Sonnet'
+            },
+            google: {
+                'gemini-2.0-flash': 'Gemini 2.0 Flash',
+                'gemini-1.5-flash': 'Gemini 1.5 Flash'
+            },
+            meta: {
+                'llama-3.1-405b': 'Llama 3.1 405B',
+                'llama-3.1-70b': 'Llama 3.1 70B'
+            },
+            mistral: {
+                'mistral-large': 'Mistral Large',
+                'mistral-medium': 'Mistral Medium'
+            },
+            deepseek: {
+                'deepseek-v3': 'DeepSeek V3',
+                'deepseek-coder': 'DeepSeek Coder'
+            },
+            other: {
+                'x-ai/grok-3-beta': 'Grok Beta'
+            }
+        };
+
+        // DOM 元素
+        const elements = {
+            themeToggle: document.getElementById('toggle-theme'),
+            modelCategory: document.getElementById('model-category'),
+            modelVersion: document.getElementById('model-version'),
+            functionBtns: document.querySelectorAll('.function-btn'),
+            chatBox: document.getElementById('chat-box'),
+            chatForm: document.getElementById('chat-form'),
+            messageInput: document.getElementById('message-input'),
+            imageInput: document.getElementById('image-input'),
+            fileBtn: document.getElementById('file-btn'),
+            sendBtn: document.getElementById('send-btn'),
+            speakBtn: document.getElementById('speak-btn'),
+            additionalOptions: document.getElementById('additional-options'),
+            loading: document.getElementById('loading'),
+            errorMessage: document.getElementById('error-message'),
+            connectionStatus: document.getElementById('connection-status'),
+            retryBtn: document.getElementById('retry-btn')
+        };
+
+        // 初始化應用
+        function initApp() {
+            console.log('正在初始化 AI 助手...');
+            setupEventListeners();
+            updateUI();
+            checkPuterAvailability();
+        }
+
+        // 檢查 Puter 可用性
+        async function checkPuterAvailability() {
+            try {
+                if (typeof puter === 'undefined') {
+                    throw new Error('Puter SDK 未載入');
+                }
+                console.log('Puter SDK 已載入完成');
+                showMessage('系統', 'AI 服務已就緒，請選擇模型開始使用！', 'ai');
+            } catch (error) {
+                console.error('Puter 檢查失敗:', error);
+                showError('AI 服務初始化失敗，請重新載入頁面');
+            }
+        }
+
+        // 設置事件監聽器
+        function setupEventListeners() {
+            // 主題切換
+            elements.themeToggle.addEventListener('click', toggleTheme);
+
+            // 模型選擇
+            elements.modelCategory.addEventListener('change', handleCategoryChange);
+            elements.modelVersion.addEventListener('change', handleModelChange);
+
+            // 功能按鈕
+            elements.functionBtns.forEach(btn => {
+                btn.addEventListener('click', () => handleFunctionChange(btn.dataset.function));
+            });
+
+            // 表單提交
+            elements.chatForm.addEventListener('submit', handleFormSubmit);
+
+            // 檔案按鈕
+            elements.fileBtn.addEventListener('click', () => elements.imageInput.click());
+            elements.imageInput.addEventListener('change', handleImageSelect);
+
+            // 重試按鈕
+            elements.retryBtn.addEventListener('click', hideError);
+        }
+
+        // 主題切換
+        function toggleTheme() {
+            appState.theme = appState.theme === 'dark' ? 'light' : 'dark';
+            updateTheme();
+        }
+
+        function updateTheme() {
+            const isDark = appState.theme === 'dark';
+            document.body.className = isDark ? 'dark-theme' : '';
+            elements.themeToggle.textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // 處理模型類別變更
+        function handleCategoryChange() {
+            const category = elements.modelCategory.value;
+            appState.selectedCategory = category;
+            appState.selectedModel = '';
+            
+            updateModelVersionSelect();
+            updateUI();
+        }
+
+        // 更新模型版本選項
+        function updateModelVersionSelect() {
+            const category = appState.selectedCategory;
+            const versionSelect = elements.modelVersion;
+            
+            versionSelect.innerHTML = '<option value="">請選擇模型</option>';
+            
+            if (category && modelConfig[category]) {
+                versionSelect.disabled = false;
+                Object.entries(modelConfig[category]).forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value;
+                    versionSelect.appendChild(option);
+                });
+            } else {
+                versionSelect.disabled = true;
+            }
+        }
+
+        // 處理模型變更
+        function handleModelChange() {
+            appState.selectedModel = elements.modelVersion.value;
+            updateUI();
+        }
+
+        // 處理功能變更
+        function handleFunctionChange(functionName) {
+            appState.currentFunction = functionName;
+            
+            // 更新按鈕狀態
+            elements.functionBtns.forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.function === functionName);
+            });
+            
+            updateUI();
+        }
+
+        // 更新 UI
+        function updateUI() {
+            const func = appState.currentFunction;
+            
+            // 更新輸入框佔位符
+            const placeholders = {
+                'chat': '在此輸入您的訊息...',
+                'image-recognition': '選擇圖片並描述您想了解什麼...',
+                'text-to-speech': '輸入要轉換為語音的文字...',
+                'text-to-image': '描述您想生成的圖片...'
+            };
+            elements.messageInput.placeholder = placeholders[func] || '輸入訊息...';
+            
+            // 顯示/隱藏功能相關元素
+            elements.fileBtn.classList.toggle('hidden', func !== 'image-recognition');
+            elements.speakBtn.classList.toggle('hidden', func !== 'text-to-speech');
+            elements.additionalOptions.classList.toggle('show', 
+                func === 'text-to-speech' || func === 'text-to-image');
+            
+            // 更新發送按鈕狀態
+            const canSubmit = appState.selectedModel && !appState.loading &&
+                             (func !== 'image-recognition' || elements.imageInput.files.length > 0);
+            elements.sendBtn.disabled = !canSubmit;
+        }
+
+        // 處理圖片選擇
+        function handleImageSelect() {
+            const file = elements.imageInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    showImagePreview(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+            updateUI();
+        }
+
+        // 顯示圖片預覽
+        function showImagePreview(imageSrc) {
+            const previewArea = document.getElementById('preview-area');
+            const previewContent = document.getElementById('preview-content');
+            
+            previewContent.innerHTML = `<img src="${imageSrc}" class="preview-image" alt="預覽圖片">`;
+            previewArea.style.display = 'block';
+        }
+
+        // 處理表單提交
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const message = elements.messageInput.value.trim();
+            if (!message) return;
+            
+            const model = appState.selectedModel;
+            if (!model) {
+                showError('請選擇 AI 模型');
+                return;
+            }
+            
+            try {
+                setLoading(true);
+                hideError();
+                
+                // 顯示用戶訊息
+                showMessage('您', message, 'user');
+                
+                // 根據功能調用對應的 AI API
+                let response;
+                switch (appState.currentFunction) {
+                    case 'chat':
+                        response = await handleChat(message, model);
+                        break;
+                    case 'image-recognition':
+                        response = await handleImageRecognition(message, model);
+                        break;
+                    case 'text-to-speech':
+                        response = await handleTextToSpeech(message);
+                        break;
+                    case 'text-to-image':
+                        response = await handleTextToImage(message);
+                        break;
+                    default:
+                        throw new Error('不支援的功能');
+                }
+                
+                // 顯示 AI 回應
+                showAIResponse(response);
+                
+                // 清空輸入
+                elements.messageInput.value = '';
+                document.getElementById('preview-area').style.display = 'none';
+                
+            } catch (error) {
+                console.error('處理請求失敗:', error);
+                showError(error.message || '處理請求時發生錯誤');
+            } finally {
+                setLoading(false);
+                updateUI();
+            }
+        }
+
+        // 處理聊天
+        async function handleChat(message, model) {
+            try {
+                console.log(`正在調用 ${model} 進行對話...`);
+                const response = await puter.ai.chat(message, {
+                    model: model
+                });
+                
+                return {
+                    text: response.message?.content?.[0]?.text || response.content || response.text || String(response),
+                    success: true
+                };
+            } catch (error) {
+                console.error('聊天 API 錯誤:', error);
+                throw new Error(`聊天功能暫時不可用: ${error.message}`);
+            }
+        }
+
+        // 處理圖片識別
+        async function handleImageRecognition(message, model) {
+            try {
+                const imageFile = elements.imageInput.files[0];
+                if (!imageFile) {
+                    throw new Error('請選擇圖片文件');
+                }
+                
+                console.log(`正在使用 ${model} 進行圖片識別...`);
+                
+                const response = await puter.ai.chat([
+                    { type: 'text', text: message },
+                    { type: 'image', image: imageFile }
+                ], {
+                    model: model
+                });
+                
+                return {
+                    text: response.message?.content?.[0]?.text || response.content || response.text || String(response),
+                    success: true
+                };
+            } catch (error) {
+                console.error('圖片識別錯誤:', error);
+                throw new Error(`圖片識別功能暫時不可用: ${error.message}`);
+            }
+        }
+
+        // 處理語音生成
+        async function handleTextToSpeech(text) {
+            try {
+                const language = document.getElementById('tts-language').value || 'zh-TW';
+                
+                console.log('正在生成語音...');
+                const response = await puter.ai.textToSpeech(text, {
+                    voice: getVoiceForLanguage(language)
+                });
+                
+                return {
+                    text: `已生成語音內容: "${text}"`,
+                    audioUrl: response.url,
+                    success: true
+                };
+            } catch (error) {
+                console.error('語音生成錯誤:', error);
+                throw new Error(`語音生成功能暫時不可用: ${error.message}`);
+            }
+        }
+
+        // 處理圖片生成
+        async function handleTextToImage(prompt) {
+            try {
+                const size = document.getElementById('img-size').value || '1024x1024';
+                const style = document.getElementById('img-style').value || '';
+                
+                const fullPrompt = style ? `${prompt}, ${style} style` : prompt;
+                
+                console.log('正在生成圖片...');
+                const response = await puter.ai.textToImage(fullPrompt, {
+                    size: size,
+                    quality: 'standard',
+                    style: 'vivid'
+                });
+                
+                return {
+                    text: `已生成圖片: "${prompt}"`,
+                    imageUrl: response.url,
+                    success: true
+                };
+            } catch (error) {
+                console.error('圖片生成錯誤:', error);
+                throw new Error(`圖片生成功能暫時不可用: ${error.message}`);
+            }
+        }
+
+        // 獲取語音語言對應
+        function getVoiceForLanguage(language) {
+            const voiceMap = {
+                'zh-TW': 'zh-TW-HsiaoChenNeural',
+                'zh-CN': 'zh-CN-XiaoxiaoNeural',
+                'en-US': 'en-US-JennyNeural',
+                'ja-JP': 'ja-JP-NanamiNeural',
+                'ko-KR': 'ko-KR-SunHiNeural'
+            };
+            
+            return voiceMap[language] || voiceMap['zh-TW'];
+        }
+
+        // 顯示訊息
+        function showMessage(sender, content, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = `<div><strong>${sender}:</strong> ${content}</div>`;
+            
+            elements.chatBox.appendChild(messageDiv);
+            elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+        }
+
+        // 顯示 AI 回應
+        function showAIResponse(response) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            
+            let content = `<div><strong>AI:</strong> ${response.text}</div>`;
+            
+            // 添加語音播放器
+            if (response.audioUrl) {
+                content += `<audio controls><source src="${response.audioUrl}" type="audio/mpeg">您的瀏覽器不支援音頻播放。</audio>`;
+            }
+            
+            // 添加生成的圖片
+            if (response.imageUrl) {
+                content += `<img src="${response.imageUrl}" alt="生成的圖片" style="max-width: 300px; border-radius: 8px;">`;
+            }
+            
+            messageDiv.innerHTML = content;
+            elements.chatBox.appendChild(messageDiv);
+            elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+        }
+
+        // 設置載入狀態
+        function setLoading(loading) {
+            appState.loading = loading;
+            elements.loading.classList.toggle('show', loading);
+            elements.sendBtn.disabled = loading;
+        }
+
+        // 顯示錯誤
+        function showError(message) {
+            appState.error = message;
+            elements.errorMessage.textContent = message;
+            elements.errorMessage.classList.add('show');
+            elements.connectionStatus.classList.add('show');
+        }
+
+        // 隱藏錯誤
+        function hideError() {
+            appState.error = '';
+            elements.errorMessage.classList.remove('show');
+            elements.connectionStatus.classList.remove('show');
+        }
+
+        // 頁面載入完成後初始化
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
 </body>
 </html>
