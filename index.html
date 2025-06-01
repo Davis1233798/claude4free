@@ -375,6 +375,9 @@
                     <option value="openai">OpenAI</option>
                     <option value="anthropic">Anthropic</option>
                     <option value="google">Google</option>
+                    <option value="meta">Meta</option>
+                    <option value="mistral">Mistral</option>
+                    <option value="deepseek">DeepSeek</option>
                     <option value="other">其他</option>
                 </select>
                 
@@ -485,18 +488,37 @@
                 'gpt-4.5-preview': 'GPT-4.5 Preview',
                 'o1': 'o1',
                 'o1-mini': 'o1 Mini',
-                'o3-mini': 'o3 Mini'
+                'o3-mini': 'o3 Mini',
+                'o4-mini': 'o4 Mini',
+                'gpt-4.1': 'GPT-4.1',
+                'gpt-4.1-mini': 'GPT-4.1 Mini'
             },
             anthropic: {
-                'claude-3-5-sonnet': 'Claude 3.5 Sonnet',
-                'claude-3-7-sonnet': 'Claude 3.7 Sonnet'
+                'claude-sonnet-4': 'Claude Sonnet 4',
+                'claude-opus-4': 'Claude Opus 4',
+                'claude-3-7-sonnet': 'Claude 3.7 Sonnet',
+                'claude-3-5-sonnet': 'Claude 3.5 Sonnet'
             },
             google: {
                 'gemini-2.0-flash': 'Gemini 2.0 Flash',
                 'gemini-1.5-flash': 'Gemini 1.5 Flash'
             },
+            meta: {
+                'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo': 'Llama 3.1 8B',
+                'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo': 'Llama 3.1 70B',
+                'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo': 'Llama 3.1 405B'
+            },
+            mistral: {
+                'mistral-large-latest': 'Mistral Large',
+                'pixtral-large-latest': 'Pixtral Large',
+                'codestral-latest': 'Codestral'
+            },
+            deepseek: {
+                'deepseek-chat': 'DeepSeek Chat',
+                'deepseek-reasoner': 'DeepSeek Reasoner'
+            },
             other: {
-                'x-ai/grok-3-beta': 'Grok Beta'
+                'grok-beta': 'Grok Beta'
             }
         };
 
@@ -558,7 +580,7 @@
                 
                 appState.puterConnected = true;
                 elements.puterStatusIcon.textContent = '✅';
-                elements.puterStatusText.textContent = 'Puter AI 服務連接正常 (支援 OpenAI、Anthropic、Google 模型)';
+                elements.puterStatusText.textContent = 'Puter AI 服務連接正常';
                 elements.puterStatus.style.backgroundColor = '#d4edda';
                 elements.puterStatus.style.borderColor = '#c3e6cb';
                 elements.puterStatus.style.color = '#155724';
@@ -770,29 +792,27 @@
         async function handleChat(message, model) {
             try {
                 console.log(`正在調用 ${model} 進行對話...`);
-                
-                // 檢查模型是否可用
-                if (!isModelAvailable(model)) {
-                    throw new Error(`模型 ${model} 暫時不可用，請選擇其他模型`);
-                }
-                
                 const response = await puter.ai.chat(message, {
                     model: model
                 });
                 
                 console.log('API 回應:', response);
                 
-                // 處理OpenAI API回應格式
+                // 處理不同AI模型的回應格式
                 let text = '';
                 if (response && typeof response === 'object') {
-                    // 處理OpenAI格式回應
+                    // 處理標準回應格式
                     if (response.message && response.message.content) {
-                        text = response.message.content;
+                        if (Array.isArray(response.message.content)) {
+                            text = response.message.content[0]?.text || response.message.content[0] || '';
+                        } else {
+                            text = response.message.content;
+                        }
                     } 
                     // 處理其他格式回應
                     else if (response.content) {
                         if (Array.isArray(response.content)) {
-                            text = response.content[0]?.text || '';
+                            text = response.content[0]?.text || response.content[0] || '';
                         } else {
                             text = response.content;
                         }
@@ -803,19 +823,33 @@
                     else if (response.response) {
                         text = response.response;
                     } 
-                    // 如果是完整的OpenAI回應物件，不要顯示JSON
+                    // 處理特殊情況（避免顯示原始JSON）
                     else if (response.index !== undefined && response.finish_reason) {
-                        text = '收到了回應，但格式異常。請重試或選擇其他模型。';
+                        text = '模型回應格式異常，請重試或選擇其他模型。';
                     }
+                    // 對於DeepSeek等模型的特殊格式
+                    else if (response.choices && response.choices[0]) {
+                        const choice = response.choices[0];
+                        if (choice.message && choice.message.content) {
+                            text = choice.message.content;
+                        } else if (choice.text) {
+                            text = choice.text;
+                        }
+                    }
+                    // 最後嘗試直接使用字符串表示
                     else {
-                        text = JSON.stringify(response);
+                        text = String(response);
+                        // 但如果是長JSON，提供更友善的錯誤
+                        if (text.length > 500 && text.includes('{') && text.includes('}')) {
+                            text = '收到了模型回應，但格式需要調整。請重試或選擇其他模型。';
+                        }
                     }
                 } else {
                     text = String(response);
                 }
                 
-                if (!text) {
-                    throw new Error('AI 回應格式異常');
+                if (!text || text.trim() === '') {
+                    throw new Error('AI 模型未返回有效回應');
                 }
                 
                 return {
@@ -824,75 +858,76 @@
                 };
             } catch (error) {
                 console.error('聊天 API 錯誤:', error);
-                
-                // 根據錯誤類型提供更具體的錯誤信息
-                let errorMessage = '聊天功能暫時不可用';
-                if (error.message.includes('不可用')) {
-                    errorMessage = error.message;
-                } else if (error.message.includes('model')) {
-                    errorMessage = '所選模型暫時不可用，請選擇其他模型';
-                } else {
-                    errorMessage = `聊天功能暫時不可用: ${error.message}`;
-                }
-                
-                throw new Error(errorMessage);
+                throw new Error(`聊天功能暫時不可用: ${error.message}`);
             }
-        }
-
-        // 檢查模型是否可用
-        function isModelAvailable(model) {
-            // 當前可用的模型列表
-            const availableModels = [
-                'gpt-4o', 'gpt-4o-mini', 'gpt-4.5-preview', 'o1', 'o1-mini', 'o3-mini',
-                'claude-3-5-sonnet', 'claude-3-7-sonnet',
-                'gemini-2.0-flash', 'gemini-1.5-flash',
-                'x-ai/grok-3-beta'
-            ];
-            
-            return availableModels.includes(model);
         }
 
         // 處理圖片識別
         async function handleImageRecognition(message, model) {
             try {
                 const imageFile = elements.imageInput.files[0];
-                
                 if (!imageFile) {
-                    throw new Error('請選擇要識別的圖片文件');
+                    throw new Error('請先上傳圖片文件');
                 }
                 
-                console.log('正在識別上傳的圖片...');
+                console.log(`正在使用 ${model} 進行圖片識別...`);
                 
-                // 使用Puter的img2txt API處理上傳的圖片
-                const response = await puter.ai.img2txt(imageFile);
+                // 使用multimodal chat API進行圖片識別
+                const response = await puter.ai.chat([
+                    { 
+                        type: 'text', 
+                        text: message || '請描述這張圖片的內容' 
+                    },
+                    { 
+                        type: 'image', 
+                        image: imageFile 
+                    }
+                ], {
+                    model: model
+                });
                 
-                console.log('圖片識別結果:', response);
+                console.log('圖片識別 API 回應:', response);
                 
-                let resultText;
-                if (message && message.trim()) {
-                    resultText = `${message}\n\n圖片識別結果：${response}`;
+                // 提取回應文字
+                let text = '';
+                if (response && typeof response === 'object') {
+                    if (response.message && response.message.content) {
+                        if (Array.isArray(response.message.content)) {
+                            text = response.message.content[0]?.text || response.message.content[0] || '';
+                        } else {
+                            text = response.message.content;
+                        }
+                    } else if (response.content) {
+                        if (Array.isArray(response.content)) {
+                            text = response.content[0]?.text || response.content[0] || '';
+                        } else {
+                            text = response.content;
+                        }
+                    } else if (response.text) {
+                        text = response.text;
+                    } else if (response.choices && response.choices[0]) {
+                        const choice = response.choices[0];
+                        if (choice.message && choice.message.content) {
+                            text = choice.message.content;
+                        }
+                    } else {
+                        text = String(response);
+                    }
                 } else {
-                    resultText = `圖片識別結果：${response}`;
+                    text = String(response);
+                }
+                
+                if (!text || text.trim() === '') {
+                    throw new Error('圖片識別未返回有效結果');
                 }
                 
                 return {
-                    text: resultText,
+                    text: text,
                     success: true
                 };
             } catch (error) {
                 console.error('圖片識別錯誤:', error);
-                
-                // 提供更詳細的錯誤信息
-                let errorMessage = '圖片識別功能暫時不可用';
-                if (error.message.includes('選擇圖片')) {
-                    errorMessage = '請先選擇要識別的圖片文件';
-                } else if (error.message.includes('img2txt')) {
-                    errorMessage = '圖片識別服務暫時不可用，請稍後再試';
-                } else {
-                    errorMessage = `圖片識別錯誤: ${error.message}`;
-                }
-                
-                throw new Error(errorMessage);
+                throw new Error(`圖片識別功能暫時不可用: ${error.message}`);
             }
         }
 
@@ -927,7 +962,7 @@
                 
                 console.log('圖片生成 API 回應:', response);
                 
-                // Puter.ai.txt2img 返回圖片數據URL
+                // Puter.ai.txt2img 返回圖片數據URL或圖片元素
                 return {
                     text: `已生成圖片: "${prompt}"`,
                     imageElement: response, // 直接使用返回的圖片元素
