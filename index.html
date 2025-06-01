@@ -8,8 +8,9 @@
     <meta name="keywords" content="AI, claude 4, GPT-4, Gemini, 圖片識別, 語音生成, 圖片生成, free chat gpt, free claude 4 opus, free claude opus, free claude, free claude 4, free claude 4 sonnet, free claude 3.7 opus, free gpt 4.5, free gpt 4.1, free grok, free mistral">
     
     <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5692204516534246"
+     crossorigin="anonymous"></script>
     <meta name="google-adsense-account" content="ca-pub-5692204516534246">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5692204516534246" crossorigin="anonymous"></script>
     
     <!-- 引入 Puter.js -->
     <script src="https://js.puter.com/v2/"></script>
@@ -790,28 +791,30 @@
                 
                 console.log('API 回應:', response);
                 
-                // 根據不同的回應格式提取文字
+                // 處理OpenAI API回應格式
                 let text = '';
                 if (response && typeof response === 'object') {
-                    // 處理 OpenAI 格式的回應
+                    // 處理OpenAI格式回應
                     if (response.message && response.message.content) {
                         text = response.message.content;
-                    }
-                    // 處理 Claude 格式的回應
-                    else if (response.message && response.message.content && Array.isArray(response.message.content)) {
-                        text = response.message.content[0]?.text || '';
                     } 
-                    // 處理其他格式
+                    // 處理其他格式回應
                     else if (response.content) {
-                        text = response.content;
-                    } else if (response.text) {
+                        if (Array.isArray(response.content)) {
+                            text = response.content[0]?.text || '';
+                        } else {
+                            text = response.content;
+                        }
+                    } 
+                    else if (response.text) {
                         text = response.text;
-                    } else if (response.response) {
+                    } 
+                    else if (response.response) {
                         text = response.response;
                     } 
-                    // 如果是 JSON 格式但包含實際回應內容，顯示錯誤
+                    // 如果是完整的OpenAI回應物件，不要顯示JSON
                     else if (response.index !== undefined && response.finish_reason) {
-                        throw new Error('模型回應格式異常，請嘗試其他模型');
+                        text = '收到了回應，但格式異常。請重試或選擇其他模型。';
                     }
                     else {
                         text = JSON.stringify(response);
@@ -839,64 +842,30 @@
             try {
                 const imageFile = elements.imageInput.files[0];
                 if (!imageFile) {
-                    throw new Error('請選擇圖片文件');
-                }
-                
-                console.log('正在進行圖片識別...');
-                
-                // 首先嘗試使用 Puter 的 img2txt API
-                try {
-                    const text = await puter.ai.img2txt(imageFile, false);
-                    console.log('圖片識別 API 回應:', text);
+                    // 如果沒有上傳圖片，使用Puter的img2txt API
+                    console.log('使用Puter img2txt API進行圖片識別...');
+                    const response = await puter.ai.img2txt(message);
                     
-                    if (text && typeof text === 'string') {
-                        const finalText = message ? `${message}\n\n圖片內容：${text}` : `圖片內容：${text}`;
-                        return {
-                            text: finalText,
-                            success: true
-                        };
-                    }
-                } catch (imgError) {
-                    console.log('img2txt API 不可用，嘗試使用 chat API:', imgError.message);
-                }
-                
-                // 如果 img2txt 不可用，回退到 chat API
-                console.log(`正在使用 ${model} 進行圖片識別...`);
-                const response = await puter.ai.chat([
-                    { type: 'text', text: message || '請描述這張圖片的內容' },
-                    { type: 'image', image: imageFile }
-                ], {
-                    model: model
-                });
-                
-                console.log('圖片識別 API 回應:', response);
-                
-                // 提取回應文字
-                let text = '';
-                if (response && typeof response === 'object') {
-                    if (response.message && response.message.content && Array.isArray(response.message.content)) {
-                        text = response.message.content[0]?.text || '';
-                    } else if (response.message && response.message.content) {
-                        text = response.message.content;
-                    } else if (response.content) {
-                        text = response.content;
-                    } else if (response.text) {
-                        text = response.text;
-                    } else {
-                        text = JSON.stringify(response);
-                    }
+                    console.log('圖片識別 API 回應:', response);
+                    
+                    return {
+                        text: response || '圖片識別完成',
+                        success: true
+                    };
                 } else {
-                    text = String(response);
+                    // 如果有上傳圖片，使用Puter的img2txt API處理檔案
+                    console.log('正在識別上傳的圖片...');
+                    const response = await puter.ai.img2txt(imageFile);
+                    
+                    console.log('圖片識別結果:', response);
+                    
+                    const resultText = message ? `${message}\n\n圖片內容：${response}` : `圖片內容：${response}`;
+                    
+                    return {
+                        text: resultText,
+                        success: true
+                    };
                 }
-                
-                if (!text) {
-                    throw new Error('圖片識別回應格式異常');
-                }
-                
-                return {
-                    text: text,
-                    success: true
-                };
             } catch (error) {
                 console.error('圖片識別錯誤:', error);
                 throw new Error(`圖片識別功能暫時不可用: ${error.message}`);
@@ -909,21 +878,16 @@
                 const language = document.getElementById('tts-language').value || 'en-US';
                 
                 console.log('正在生成語音...');
-                const response = await puter.ai.txt2speech(text, language, false);
+                const response = await puter.ai.txt2speech(text, language);
                 
                 console.log('語音生成 API 回應:', response);
                 
-                // Puter txt2speech 回傳 MP3 音頻流
-                if (response && (response instanceof HTMLAudioElement || response.play)) {
-                    return {
-                        text: `已生成語音內容: "${text}"`,
-                        audioElement: response,
-                        success: true
-                    };
-                } else {
-                    throw new Error('語音生成回應格式異常');
-                }
-                
+                // 直接使用回應作為音訊元素
+                return {
+                    text: `已生成語音內容: "${text}"`,
+                    audioElement: response, // Puter.ai.txt2speech 直接返回音訊元素
+                    success: true
+                };
             } catch (error) {
                 console.error('語音生成錯誤:', error);
                 throw new Error(`語音生成功能暫時不可用: ${error.message}`);
@@ -934,21 +898,17 @@
         async function handleTextToImage(prompt) {
             try {
                 console.log('正在生成圖片...');
-                const imageDataUrl = await puter.ai.txt2img(prompt, false);
+                // 使用 testMode = false 來生成真實圖片
+                const response = await puter.ai.txt2img(prompt, false);
                 
-                console.log('圖片生成 API 回應:', imageDataUrl);
+                console.log('圖片生成 API 回應:', response);
                 
-                // Puter txt2img 回傳 image data URL
-                if (imageDataUrl && (typeof imageDataUrl === 'string' || imageDataUrl instanceof HTMLImageElement)) {
-                    return {
-                        text: `已生成圖片: "${prompt}"`,
-                        imageUrl: typeof imageDataUrl === 'string' ? imageDataUrl : imageDataUrl.src,
-                        success: true
-                    };
-                } else {
-                    throw new Error('圖片生成回應格式異常');
-                }
-                
+                // Puter.ai.txt2img 返回圖片數據URL
+                return {
+                    text: `已生成圖片: "${prompt}"`,
+                    imageElement: response, // 直接使用返回的圖片元素
+                    success: true
+                };
             } catch (error) {
                 console.error('圖片生成錯誤:', error);
                 throw new Error(`圖片生成功能暫時不可用: ${error.message}`);
@@ -996,10 +956,10 @@
             contentDiv.innerHTML = `<strong>AI:</strong> ${escapeHtml(response.text)}`;
             messageDiv.appendChild(contentDiv);
             
-            // 添加語音播放器
+            // 添加語音播放器 (修復)
             if (response.audioElement) {
                 const audioDiv = document.createElement('div');
-                audioDiv.style.cssText = 'margin: 10px 0;';
+                audioDiv.style.margin = '10px 0';
                 audioDiv.appendChild(response.audioElement);
                 messageDiv.appendChild(audioDiv);
             } else if (response.audioUrl) {
@@ -1008,8 +968,15 @@
                 messageDiv.appendChild(audioDiv);
             }
             
-            // 添加生成的圖片
-            if (response.imageUrl) {
+            // 添加生成的圖片 (修復)
+            if (response.imageElement) {
+                const imgDiv = document.createElement('div');
+                imgDiv.style.margin = '10px 0';
+                response.imageElement.style.maxWidth = '300px';
+                response.imageElement.style.borderRadius = '8px';
+                imgDiv.appendChild(response.imageElement);
+                messageDiv.appendChild(imgDiv);
+            } else if (response.imageUrl) {
                 const imgDiv = document.createElement('div');
                 imgDiv.innerHTML = `<img src="${response.imageUrl}" alt="生成的圖片" style="max-width: 300px; border-radius: 8px; margin: 10px 0;">`;
                 messageDiv.appendChild(imgDiv);
