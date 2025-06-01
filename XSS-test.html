@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS 安全測試</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-case { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .test-input { width: 100%; padding: 8px; margin: 5px 0; }
+        .test-button { padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .result { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        .safe { background: #d4edda; color: #155724; }
+        .danger { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ XSS 安全防護測試</h1>
+    <p>此頁面用於測試聊天系統的XSS防護功能是否正常工作。</p>
+
+    <div class="test-case">
+        <h3>測試案例 1: 基本 Script 標籤</h3>
+        <input type="text" class="test-input" value="&lt;script&gt;alert('XSS攻擊!')&lt;/script&gt;" readonly>
+        <button class="test-button" onclick="testXSS(this, '&lt;script&gt;alert(\'XSS攻擊!\')&lt;/script&gt;')">測試</button>
+        <div class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-case">
+        <h3>測試案例 2: IMG 標籤 XSS</h3>
+        <input type="text" class="test-input" value="&lt;img src=x onerror=alert('IMG XSS')&gt;" readonly>
+        <button class="test-button" onclick="testXSS(this, '&lt;img src=x onerror=alert(\'IMG XSS\')&gt;')">測試</button>
+        <div class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-case">
+        <h3>測試案例 3: HTML 實體編碼</h3>
+        <input type="text" class="test-input" value="&amp;lt;script&amp;gt;alert('編碼XSS')&amp;lt;/script&amp;gt;" readonly>
+        <button class="test-button" onclick="testXSS(this, '&amp;lt;script&amp;gt;alert(\'編碼XSS\')&amp;lt;/script&amp;gt;')">測試</button>
+        <div class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-case">
+        <h3>測試案例 4: 正常文字</h3>
+        <input type="text" class="test-input" value="這是正常的聊天消息，包含<b>HTML</b>標籤" readonly>
+        <button class="test-button" onclick="testXSS(this, '這是正常的聊天消息，包含&lt;b&gt;HTML&lt;/b&gt;標籤')">測試</button>
+        <div class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 複製我們的安全函數
+        function sanitizeContent(content) {
+            if (typeof content !== 'string') {
+                content = String(content);
+            }
+            
+            // 移除所有 HTML 標籤，只保留純文字
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            return tempDiv.textContent || tempDiv.innerText || '';
+        }
+
+        function testXSS(button, testContent) {
+            const resultDiv = button.nextElementSibling;
+            resultDiv.style.display = 'block';
+            
+            try {
+                // 測試我們的清理函數
+                const cleanedContent = sanitizeContent(testContent);
+                
+                // 檢查是否包含危險內容
+                const hasDangerousContent = testContent.includes('<script>') || 
+                                          testContent.includes('onerror') || 
+                                          testContent.includes('javascript:');
+                
+                // 檢查清理後是否安全
+                const isCleanedSafe = !cleanedContent.includes('<') && 
+                                     !cleanedContent.includes('>') && 
+                                     !cleanedContent.includes('javascript:');
+                
+                if (hasDangerousContent && isCleanedSafe) {
+                    resultDiv.className = 'result safe';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 安全防護成功!</strong><br>
+                        原始內容: ${testContent}<br>
+                        清理後: ${cleanedContent}
+                    `;
+                } else if (!hasDangerousContent) {
+                    resultDiv.className = 'result safe';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 正常內容處理成功!</strong><br>
+                        清理後: ${cleanedContent}
+                    `;
+                } else {
+                    resultDiv.className = 'result danger';
+                    resultDiv.innerHTML = `
+                        <strong>❌ 防護可能有問題!</strong><br>
+                        清理後仍包含危險內容: ${cleanedContent}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result danger';
+                resultDiv.innerHTML = `<strong>❌ 測試出錯:</strong> ${error.message}`;
+            }
+        }
+
+        // 頁面載入後自動運行所有測試
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const buttons = document.querySelectorAll('.test-button');
+                buttons.forEach(button => button.click());
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 
