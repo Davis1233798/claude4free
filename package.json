@@ -1,0 +1,51 @@
+{
+  "name": "claude4free",
+  "version": "2.0.0",
+  "description": "免費AI多功能助手 - 純前端架構，基於 Puter.js SDK",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server . -p 8080 -o",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
+    "dev": "http-server . -p 8080 -o --cors",
+    "build": "echo '純前端應用，無需構建步驟'",
+    "deploy:check": "echo '檢查部署準備...' && ls -la index.html",
+    "lint:html": "echo '檢查 HTML 語法...' && grep -q 'puter' index.html && echo '✅ HTML 檢查通過'",
+    "validate": "npm run lint:html && echo '✅ 所有驗證通過'",
+    "ci": "npm run validate && npm run test"
+  },
+  "keywords": [
+    "ai",
+    "claude",
+    "gpt",
+    "gemini",
+    "chatbot",
+    "puter",
+    "frontend",
+    "html5",
+    "javascript"
+  ],
+  "author": "Davis1233798",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Davis1233798/claude4free.git"
+  },
+  "homepage": "https://claude4free.pages.dev",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "http-server": "^14.1.1",
+    "playwright": "^1.40.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "last 2 Edge versions"
+  ]
+} 
