@@ -526,8 +526,8 @@
             <form method="post" 
                   action-xhr="https://claude4free-api.davis1233798.workers.dev/api/chat" 
                   on="submit:AMP.setState({appState: {loading: true, error: ''}});
-                      submit-success:AMP.setState({appState: {loading: false, error: ''}});
-                      submit-error:AMP.setState({appState: {loading: false, error: event.response ? (event.response.error || '伺服器回應錯誤 (HTTP ' + event.response.status + ')') : '網路連接失敗，請檢查網路連接或稍後再試'}})">
+                      submit-success:AMP.setState({appState: {loading: false}});
+                      submit-error:AMP.setState({appState: {loading: false, error: event.response ? '伺服器回應錯誤：' + (event.response.error || 'HTTP ' + event.response.status) : '網路連接失敗，請檢查網路連接或稍後再試'}})">
                 <div class="input-row">
                     <input type="file" 
                            name="image" 
