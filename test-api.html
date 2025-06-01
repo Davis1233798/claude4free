@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 測試頁面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-form {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Claude4Free API 測試</h1>
+    
+    <div class="test-form">
+        <h2>健康檢查測試</h2>
+        <button onclick="testHealth()">測試健康檢查</button>
+        <div id="health-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-form">
+        <h2>聊天 API 測試</h2>
+        <input type="text" id="message" placeholder="輸入測試訊息" value="你好，這是測試">
+        <select id="model">
+            <option value="">選擇模型</option>
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+        </select>
+        <button onclick="testChat()">測試聊天</button>
+        <div id="chat-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-form">
+        <h2>語音生成測試</h2>
+        <input type="text" id="tts-message" placeholder="要轉換的文字" value="你好，這是語音測試">
+        <select id="tts-language">
+            <option value="zh-TW">繁體中文</option>
+            <option value="en-US">英文</option>
+        </select>
+        <button onclick="testTTS()">測試語音生成</button>
+        <div id="tts-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-form">
+        <h2>圖片生成測試</h2>
+        <input type="text" id="img-prompt" placeholder="圖片描述" value="A beautiful sunset landscape">
+        <input type="text" id="img-size" placeholder="尺寸" value="512x512">
+        <input type="text" id="img-style" placeholder="風格" value="realistic">
+        <button onclick="testImageGen()">測試圖片生成</button>
+        <div id="img-result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://claude4free-api.davis1233798.workers.dev';
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '測試中...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 健康檢查成功</strong><br>
+                        狀態: ${data.status}<br>
+                        時間: ${data.timestamp}<br>
+                        環境: ${data.environment}
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ 健康檢查失敗</strong><br>${error.message}`;
+            }
+        }
+
+        async function testChat() {
+            const message = document.getElementById('message').value;
+            const model = document.getElementById('model').value;
+            const resultDiv = document.getElementById('chat-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '測試中...';
+            resultDiv.className = 'result';
+
+            if (!message || !model) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '請填寫訊息和選擇模型';
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('message', message);
+                formData.append('function', 'chat');
+                formData.append('model', model);
+
+                const response = await fetch(`${API_BASE}/api/chat`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 聊天測試成功</strong><br>
+                        回應: ${data.text || '無回應內容'}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <strong>❌ 聊天測試失敗</strong><br>
+                        錯誤: ${data.error || `HTTP ${response.status}`}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ 聊天測試失敗</strong><br>${error.message}`;
+            }
+        }
+
+        async function testTTS() {
+            const message = document.getElementById('tts-message').value;
+            const language = document.getElementById('tts-language').value;
+            const resultDiv = document.getElementById('tts-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '測試中...';
+            resultDiv.className = 'result';
+
+            if (!message) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '請填寫要轉換的文字';
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('message', message);
+                formData.append('function', 'text-to-speech');
+                formData.append('model', 'gpt-4o');
+                formData.append('tts-language', language);
+
+                const response = await fetch(`${API_BASE}/api/chat`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 語音生成測試成功</strong><br>
+                        回應: ${data.text || '無回應內容'}<br>
+                        ${data.audioUrl ? `音頻URL: ${data.audioUrl}` : ''}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <strong>❌ 語音生成測試失敗</strong><br>
+                        錯誤: ${data.error || `HTTP ${response.status}`}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ 語音生成測試失敗</strong><br>${error.message}`;
+            }
+        }
+
+        async function testImageGen() {
+            const prompt = document.getElementById('img-prompt').value;
+            const size = document.getElementById('img-size').value;
+            const style = document.getElementById('img-style').value;
+            const resultDiv = document.getElementById('img-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '測試中...';
+            resultDiv.className = 'result';
+
+            if (!prompt) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '請填寫圖片描述';
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('message', prompt);
+                formData.append('function', 'text-to-image');
+                formData.append('model', 'gpt-4o');
+                formData.append('img-size', size);
+                formData.append('img-style', style);
+
+                const response = await fetch(`${API_BASE}/api/chat`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 圖片生成測試成功</strong><br>
+                        回應: ${data.text || '無回應內容'}<br>
+                        ${data.imageUrl ? `圖片URL: ${data.imageUrl}` : ''}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <strong>❌ 圖片生成測試失敗</strong><br>
+                        錯誤: ${data.error || `HTTP ${response.status}`}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ 圖片生成測試失敗</strong><br>${error.message}`;
+            }
+        }
+
+        // 頁面載入時自動測試健康檢查
+        window.onload = function() {
+            testHealth();
+        };
+    </script>
+</body>
+</html> 
