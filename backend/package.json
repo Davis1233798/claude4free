@@ -9,7 +9,10 @@
     "deploy": "wrangler deploy --env production",
     "deploy-dev": "wrangler deploy --env development",
     "tail": "wrangler tail --env production",
-    "test": "wrangler dev --local"
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "keywords": [
     "ai",
@@ -21,7 +24,9 @@
   "author": "Davis",
   "license": "MIT",
   "devDependencies": {
-    "wrangler": "^3.0.0"
+    "wrangler": "^3.0.0",
+    "vitest": "^2.0.0",
+    "@vitest/ui": "^2.0.0"
   },
   "dependencies": {},
   "engines": {

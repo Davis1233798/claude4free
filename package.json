@@ -1,0 +1,36 @@
+{
+  "name": "claude4free",
+  "version": "1.0.0",
+  "description": "免費AI多功能助手 - AMP網站",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:frontend": "vitest run tests/frontend.test.js",
+    "test:backend": "cd backend && npm run test:run",
+    "test:all": "npm run test:frontend && npm run test:backend",
+    "dev:backend": "cd backend && npm run dev",
+    "deploy:backend": "cd backend && npm run deploy",
+    "validate:amp": "npx amphtml-validator index.html"
+  },
+  "keywords": [
+    "ai",
+    "claude",
+    "amp",
+    "cloudflare",
+    "frontend"
+  ],
+  "author": "Davis",
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^2.0.0",
+    "jsdom": "^22.0.0",
+    "amphtml-validator": "^1.0.0"
+  },
+  "workspaces": [
+    "backend"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 

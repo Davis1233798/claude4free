@@ -1,0 +1,72 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Cloudflare Deployment Architecture
+
+## Deployment Strategy
+This project uses a **dual Cloudflare deployment**:
+- **Frontend**: Cloudflare Pages (static AMP website)
+- **Backend**: Cloudflare Workers (serverless API)
+
+## Key Configuration Files
+
+### Frontend Deployment
+- [frontend/_headers](mdc:frontend/_headers) - HTTP headers and security policies
+- [frontend/_redirects](mdc:frontend/_redirects) - URL redirects and API proxying
+- [cloudflare-pages.toml](mdc:cloudflare-pages.toml) - Pages build configuration
+
+### Backend Deployment  
+- [backend/wrangler.toml](mdc:backend/wrangler.toml) - Workers configuration
+- [backend/api-server.js](mdc:backend/api-server.js) - Main Workers script
+- [backend/package.json](mdc:backend/package.json) - Dependencies and scripts
+
+## API Endpoints
+The Workers API ([backend/api-server.js](mdc:backend/api-server.js)) provides:
+- `POST /api/chat` - Main AI chat endpoint
+- `GET /health` - Health check endpoint
+- `GET /` - API documentation page
+
+## CORS Configuration
+Workers handles CORS for cross-origin requests:
+```javascript
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+};
+```
+
+## Environment Variables
+Set in [backend/wrangler.toml](mdc:backend/wrangler.toml):
+- `ENVIRONMENT` - production/development
+- `ALLOWED_ORIGINS` - Comma-separated allowed origins
+
+## Deployment Commands
+
+### Deploy Frontend
+Frontend auto-deploys via git push to connected repository.
+
+### Deploy Backend
+```bash
+cd backend
+npx wrangler deploy --env production
+```
+
+### Local Development
+```bash
+cd backend  
+npx wrangler dev --env development
+```
+
+## Current Live URLs
+- **Frontend**: https://claude4free.pages.dev
+- **Backend API**: https://claude4free-api.davis1233798.workers.dev
+- **API Health**: https://claude4free-api.davis1233798.workers.dev/health
+
+## Troubleshooting Deployment
+1. Check Workers logs: `npx wrangler tail`
+2. Validate AMP: Use AMP validator
+3. Test API endpoints manually
+4. Monitor Cloudflare Dashboard for errors

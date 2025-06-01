@@ -1,0 +1,87 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# API Integration Patterns
+
+## API Architecture
+The backend ([backend/api-server.js](mdc:backend/api-server.js)) integrates with Puter.com APIs to provide AI functionality.
+
+## Supported Functions
+1. **Chat**: General conversation with AI models
+2. **Image Recognition**: Upload image + text prompt for analysis  
+3. **Text-to-Speech**: Convert text to audio
+4. **Text-to-Image**: Generate images from text prompts
+
+## Request Flow
+```
+Frontend (AMP) → Cloudflare Workers → Puter API → AI Model → Response
+```
+
+## API Request Format
+The main endpoint `/api/chat` accepts form data:
+```javascript
+{
+  message: string,           // User input text
+  function: string,         // 'chat' | 'image-recognition' | 'text-to-speech' | 'text-to-image'
+  model: string,            // AI model identifier
+  'tts-language': string,   // Language for TTS (default: 'zh-TW')
+  'img-size': string,       // Image size (default: '512x512')
+  'img-style': string,      // Image style modifier
+  image: File              // Image file for recognition
+}
+```
+
+## Model Categories and IDs
+Models are organized by provider in the frontend:
+
+### OpenAI Models
+- `gpt-4o` - GPT-4o
+- `gpt-4o-mini` - GPT-4o Mini  
+- `gpt-4.5-preview` - GPT-4.5 Preview
+- `o1` - o1
+- `o1-mini` - o1 Mini
+
+### Anthropic Models
+- `claude-3-5-sonnet` - Claude 3.5 Sonnet
+- `claude-3-7-sonnet` - Claude 3.7 Sonnet
+
+### Error Handling Patterns
+The API implements comprehensive error handling:
+```javascript
+try {
+  const response = await callPuterAPI('/ai/chat', data);
+  return { text: response.content, success: true };
+} catch (error) {
+  throw new Error(`Chat failed: ${error.message}`);
+}
+```
+
+## Frontend API Integration
+The AMP frontend uses form submission with XHR:
+```html
+<form method="post" 
+      action-xhr="https://claude4free-api.davis1233798.workers.dev/api/chat"
+      on="submit:AMP.setState({appState: {loading: true}});
+          submit-success:AMP.setState({appState: {loading: false}});
+          submit-error:AMP.setState({appState: {error: 'Request failed'}})">
+```
+
+## Response Format
+All API responses follow this structure:
+```javascript
+{
+  text: string,           // Main response text
+  success: boolean,       // Operation success status
+  audioUrl?: string,      // For TTS responses
+  imageUrl?: string,      // For image generation responses
+  error?: string          // Error message if failed
+}
+```
+
+## Rate Limiting & Security
+- CORS enabled for cross-origin requests
+- Input validation on all parameters
+- Error messages sanitized to prevent information leakage
+- No authentication required (free tier usage)

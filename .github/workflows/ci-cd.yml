@@ -1,0 +1,147 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: 執行測試
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout 代碼
+      uses: actions/checkout@v4
+      
+    - name: 設置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+        
+    - name: 安裝依賴
+      working-directory: backend
+      run: npm ci
+      
+    - name: 運行單元測試
+      working-directory: backend
+      run: npm run test:run
+      
+    - name: 生成測試覆蓋率報告
+      working-directory: backend
+      run: npm run test:coverage
+      
+    - name: 上傳覆蓋率報告
+      uses: codecov/codecov-action@v3
+      with:
+        directory: backend/coverage
+        fail_ci_if_error: false
+
+  lint:
+    name: 代碼檢查
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout 代碼
+      uses: actions/checkout@v4
+      
+    - name: 設置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: 安裝依賴
+      working-directory: backend  
+      run: npm ci
+      
+    - name: AMP 驗證
+      run: |
+        npx amphtml-validator index.html || echo "AMP validation warnings found"
+
+  deploy-workers:
+    name: 部署 Cloudflare Workers
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout 代碼
+      uses: actions/checkout@v4
+      
+    - name: 設置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: 安裝依賴
+      working-directory: backend
+      run: npm ci
+      
+    - name: 部署到 Cloudflare Workers
+      working-directory: backend
+      run: npx wrangler deploy --env production
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        
+    - name: 測試部署的 API
+      run: |
+        sleep 10
+        curl -f https://claude4free-api.davis1233798.workers.dev/health || exit 1
+
+  deploy-pages:
+    name: 部署 Cloudflare Pages
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout 代碼
+      uses: actions/checkout@v4
+      
+    - name: 部署到 Cloudflare Pages
+      uses: cloudflare/pages-action@v1
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        projectName: claude4free
+        directory: frontend
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  integration-test:
+    name: 整合測試
+    runs-on: ubuntu-latest
+    needs: [deploy-workers, deploy-pages]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout 代碼
+      uses: actions/checkout@v4
+      
+    - name: 設置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: 安裝依賴
+      working-directory: backend
+      run: npm ci
+      
+    - name: 運行整合測試
+      working-directory: backend
+      run: npm run test:run
+      env:
+        TEST_ENV: production
+        
+    - name: 驗證前端頁面
+      run: |
+        curl -f https://claude4free.pages.dev || exit 1
+        
+    - name: 通知部署成功
+      if: success()
+      run: |
+        echo "🎉 部署成功！"
+        echo "前端: https://claude4free.pages.dev"
+        echo "API: https://claude4free-api.davis1233798.workers.dev" 

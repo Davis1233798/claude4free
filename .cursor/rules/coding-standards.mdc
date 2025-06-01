@@ -1,0 +1,121 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Coding Standards and Best Practices
+
+## Language and Communication
+- **Code comments**: Use Traditional Chinese (zh-TW) for comments
+- **User-facing text**: Use Traditional Chinese for all UI text
+- **Variable names**: Use English with descriptive names
+- **Console logs**: Use Chinese for debugging messages
+
+## Code Style Guidelines
+
+### HTML/AMP
+- Use semantic HTML5 elements
+- Maintain proper indentation (4 spaces)
+- Include ARIA attributes for accessibility
+- Follow AMP validation requirements (see [amp-development-guidelines.mdc](mdc:amp-development-guidelines.mdc))
+
+### CSS
+- Use CSS custom properties for theming
+- Implement dark/light mode support
+- Mobile-first responsive design
+- BEM-like naming for complex components
+- Keep all styles in `<style amp-custom>` tags
+
+### JavaScript (Cloudflare Workers)
+- Use async/await for asynchronous operations
+- Implement comprehensive error handling
+- Use descriptive function names in English
+- Add JSDoc comments for complex functions
+- Follow ES6+ syntax patterns
+
+## Error Handling Patterns
+
+### Frontend (AMP)
+```html
+<div class="error-message" 
+     [hidden]="!appState.error"
+     [text]="appState.error">
+</div>
+```
+
+### Backend (Workers)
+```javascript
+try {
+  // API operation
+} catch (error) {
+  console.error('API 錯誤:', error);
+  return new Response(JSON.stringify({ 
+    error: error.message || '伺服器錯誤' 
+  }), {
+    status: 500,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders }
+  });
+}
+```
+
+## User Experience Principles
+
+### Loading States
+- Show loading indicators during API calls
+- Disable submit buttons when processing
+- Provide clear feedback for all actions
+
+### Form Validation
+- Validate required fields before submission
+- Show helpful error messages in Chinese
+- Disable functionality when prerequisites not met
+
+### Responsive Design
+- Mobile-first approach
+- Flexible layouts with CSS Grid/Flexbox
+- Touch-friendly button sizes (minimum 44px)
+
+## Security Best Practices
+
+### Input Validation
+- Sanitize all user inputs
+- Validate file uploads (type, size)
+- Escape HTML content to prevent XSS
+
+### CORS Configuration
+- Allow specific origins in production
+- Use wildcard only for development
+- Include proper headers in all responses
+
+## Documentation Standards
+
+### File Headers
+Include purpose and key functionality:
+```javascript
+// Cloudflare Workers API for Claude4Free
+// 處理多種AI功能：聊天、圖片識別、語音生成、圖片生成
+```
+
+### Function Documentation
+```javascript
+/**
+ * 處理聊天請求
+ * @param {string} message - 用戶訊息
+ * @param {string} model - AI模型ID
+ * @returns {Promise<Object>} 處理結果
+ */
+async function handleChat(message, model) {
+  // Implementation
+}
+```
+
+## Git Commit Messages
+- Use descriptive Chinese commit messages
+- Include scope and impact
+- Example: `修復AMP和廣告錯誤: 移除問題廣告配置，優化錯誤處理，提升用戶體驗`
+
+## Performance Considerations
+- Minimize bundle size (AMP restrictions)
+- Use efficient CSS selectors
+- Implement proper caching headers
+- Optimize images and assets

@@ -1,0 +1,159 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Troubleshooting Guide
+
+## Common Issues and Solutions
+
+### AMP Validation Errors
+
+#### Problem: Auto Ads Not Enabled
+```
+[amp-auto-ads] Auto ads for AMP aren't enabled for the provided publisher ID
+```
+**Solution**: Remove `amp-auto-ads` component and related AdSense configuration. Use placeholder ad boxes instead.
+
+#### Problem: Sync-XHR Policy Violations
+```
+[Violation] Potential permissions policy violation: sync-xhr is not allowed
+```
+**Solution**: Ensure all requests use `action-xhr` in forms and avoid synchronous requests.
+
+#### Problem: Preloaded Resources Not Used
+```
+The resource was preloaded using link preload but not used within a few seconds
+```
+**Solution**: Remove unnecessary preload directives or ensure resources are actually used.
+
+### API Integration Issues
+
+#### Problem: 500 Internal Server Error
+**Common Causes**:
+- Missing required parameters (message, model)
+- Malformed request data
+- Puter API service unavailable
+
+**Debugging Steps**:
+1. Check Workers logs: `npx wrangler tail`
+2. Validate request format in browser DevTools
+3. Test API endpoint directly with curl
+4. Check Puter API status
+
+#### Problem: CORS Errors
+**Solution**: Verify CORS headers in [backend/api-server.js](mdc:backend/api-server.js):
+```javascript
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+};
+```
+
+#### Problem: Form Submission Failures
+**Check**:
+- Form `action-xhr` URL is correct
+- Required fields are populated
+- Model is selected before submission
+- Network connectivity
+
+### Deployment Issues
+
+#### Frontend (Cloudflare Pages)
+**Problem**: Build failures or content not updating
+**Solutions**:
+1. Check build logs in Cloudflare Dashboard
+2. Verify [cloudflare-pages.toml](mdc:cloudflare-pages.toml) configuration
+3. Ensure frontend files are in correct directory
+4. Clear Cloudflare cache if needed
+
+#### Backend (Cloudflare Workers)
+**Problem**: Deployment fails
+**Solutions**:
+1. Validate [backend/wrangler.toml](mdc:backend/wrangler.toml) syntax
+2. Check authentication: `npx wrangler whoami`
+3. Verify account permissions and plan limits
+4. Check for syntax errors in Workers script
+
+### UI/UX Issues
+
+#### Problem: Dark Mode Not Working
+**Check**:
+- AMP state management in [index.html](mdc:index.html)
+- CSS theme classes are properly defined
+- Button event handlers are correct
+
+#### Problem: Mobile Responsiveness
+**Solutions**:
+- Test on multiple screen sizes
+- Verify CSS media queries
+- Check AMP viewport meta tag
+- Ensure touch targets are properly sized
+
+## Debugging Tools and Commands
+
+### Frontend Debugging
+```bash
+# Validate AMP
+open "https://validator.ampproject.org/#url=https://claude4free.pages.dev"
+
+# Test with development mode
+open "https://claude4free.pages.dev#development=1"
+```
+
+### Backend Debugging
+```bash
+# Check Workers logs
+cd backend
+npx wrangler tail --env production
+
+# Local development
+npx wrangler dev --env development
+
+# Test API health
+curl https://claude4free-api.davis1233798.workers.dev/health
+```
+
+### Network Debugging
+```bash
+# Test API endpoint
+curl -X POST https://claude4free-api.davis1233798.workers.dev/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "test", "function": "chat", "model": "gpt-4o"}'
+```
+
+## Performance Monitoring
+
+### Key Metrics to Watch
+- **Frontend**: Page load time, AMP validation score
+- **Backend**: Response time, error rate, memory usage
+- **API**: Request success rate, latency
+
+### Monitoring Tools
+- Cloudflare Analytics (Pages & Workers)
+- Browser DevTools Network tab
+- AMP validation reports
+- Workers runtime logs
+
+## Prevention Strategies
+
+### Code Quality
+- Use AMP validator before deployment
+- Test API endpoints manually
+- Review CORS configuration
+- Validate form data handling
+
+### Deployment Safety
+- Test in development environment first
+- Monitor logs after deployment
+- Keep rollback plan ready
+- Document configuration changes
+
+## Emergency Procedures
+
+### Critical Issues
+1. **API Down**: Check Workers status, redeploy if needed
+2. **Site Unreachable**: Verify DNS, check Cloudflare status
+3. **Security Issue**: Disable affected features, patch immediately
+4. **Performance Degradation**: Check logs, monitor metrics, scale if needed
