@@ -271,6 +271,62 @@
         }
         .secondary-options.show {
             display: flex;
+            flex-direction: column;
+        }
+        .secondary-option {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        body[theme="dark"] .secondary-option {
+            background-color: #2a2a2a;
+            border-color: #404040;
+        }
+        .option-header h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #333;
+        }
+        body[theme="dark"] .option-header h3 {
+            color: #e0e0e0;
+        }
+        .option-header p {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        body[theme="dark"] .option-header p {
+            color: #999;
+        }
+        .option-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-controls label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        body[theme="dark"] .option-controls label {
+            color: #e0e0e0;
+        }
+        .option-controls select,
+        .option-controls input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+            margin-bottom: 10px;
+        }
+        body[theme="dark"] .option-controls select,
+        body[theme="dark"] .option-controls input[type="file"] {
+            background-color: #444;
+            color: white;
+            border-color: #666;
         }
         .ad-placeholder {
             width: 300px;
@@ -398,37 +454,59 @@
             <div class="secondary-options" id="secondary-options">
                 <!-- 語音生成選項 -->
                 <div class="secondary-option" id="tts-options" style="display: none;">
-                    <select id="tts-language">
-                        <option value="zh-TW">中文（繁體）</option>
-                        <option value="zh-CN">中文（簡體）</option>
-                        <option value="en-US">English (US)</option>
-                        <option value="ja-JP">日本語</option>
-                        <option value="ko-KR">한국어</option>
-                    </select>
+                    <div class="option-header">
+                        <h3>🔊 語音生成設定</h3>
+                        <p>將您的文字轉換為自然語音</p>
+                    </div>
+                    <div class="option-controls">
+                        <label for="tts-language">語音語言：</label>
+                        <select id="tts-language">
+                            <option value="zh-TW">中文（繁體）</option>
+                            <option value="zh-CN">中文（簡體）</option>
+                            <option value="en-US">English (US)</option>
+                            <option value="ja-JP">日本語</option>
+                            <option value="ko-KR">한국어</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- 圖片生成選項 -->
                 <div class="secondary-option" id="img-options" style="display: none;">
-                    <select id="img-size">
-                        <option value="512x512">512x512</option>
-                        <option value="1024x1024">1024x1024</option>
-                        <option value="1792x1024">1792x1024</option>
-                        <option value="1024x1792">1024x1792</option>
-                    </select>
-                    <select id="img-style">
-                        <option value="">預設風格</option>
-                        <option value="realistic">寫實風格</option>
-                        <option value="cartoon">卡通風格</option>
-                        <option value="anime">動漫風格</option>
-                        <option value="photographic">攝影風格</option>
-                    </select>
+                    <div class="option-header">
+                        <h3>🎨 圖片生成設定</h3>
+                        <p>使用AI從文字描述生成圖片</p>
+                    </div>
+                    <div class="option-controls">
+                        <label for="img-size">圖片尺寸：</label>
+                        <select id="img-size">
+                            <option value="512x512">512x512 (正方形)</option>
+                            <option value="1024x1024">1024x1024 (高品質正方形)</option>
+                            <option value="1792x1024">1792x1024 (橫向)</option>
+                            <option value="1024x1792">1024x1792 (直向)</option>
+                        </select>
+                        <label for="img-style">圖片風格：</label>
+                        <select id="img-style">
+                            <option value="">預設風格</option>
+                            <option value="realistic">寫實風格</option>
+                            <option value="cartoon">卡通風格</option>
+                            <option value="anime">動漫風格</option>
+                            <option value="photographic">攝影風格</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- 圖片識別選項 -->
                 <div class="secondary-option" id="img-recognition-options" style="display: none;">
-                    <input type="file" id="image-input" accept="image/*" onchange="handleImageUpload()">
-                    <div id="preview-area" style="display: none; margin-top: 10px;">
-                        <div id="preview-content"></div>
+                    <div class="option-header">
+                        <h3>🖼️ 圖片識別設定</h3>
+                        <p>上傳圖片並讓AI分析圖片內容</p>
+                    </div>
+                    <div class="option-controls">
+                        <label for="image-input">選擇圖片文件：</label>
+                        <input type="file" id="image-input" accept="image/*" onchange="handleImageUpload()">
+                        <div id="preview-area" style="display: none; margin-top: 10px;">
+                            <div id="preview-content"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -553,6 +631,9 @@
             document.body.setAttribute('theme', savedTheme);
             updateThemeIcon();
             
+            // 設置初始UI狀態
+            updateSecondaryOptions();
+            updateModelVisibility();
             updateUI();
         }
 
@@ -661,7 +742,20 @@
             });
             
             updateSecondaryOptions();
+            updateModelVisibility();
             updateUI();
+        }
+
+        // 更新模型選擇器的可見性
+        function updateModelVisibility() {
+            const modelSelector = document.querySelector('.model-selector');
+            const specialFunctions = ['text-to-speech', 'text-to-image', 'image-recognition'];
+            
+            if (specialFunctions.includes(appState.currentFunction)) {
+                modelSelector.style.display = 'none';
+            } else {
+                modelSelector.style.display = 'flex';
+            }
         }
 
         // 更新次要選項顯示
@@ -692,7 +786,14 @@
 
         // 更新 UI
         function updateUI() {
-            const canSubmit = appState.selectedModel && !appState.loading && appState.puterConnected;
+            // 對於特殊功能，不需要模型選擇
+            const specialFunctions = ['text-to-speech', 'text-to-image', 'image-recognition'];
+            const needsModel = !specialFunctions.includes(appState.currentFunction);
+            
+            const canSubmit = needsModel 
+                ? (appState.selectedModel && !appState.loading && appState.puterConnected)
+                : (!appState.loading && appState.puterConnected);
+                
             elements.sendBtn.disabled = !canSubmit;
         }
 
@@ -732,10 +833,17 @@
             const message = elements.messageInput.value.trim();
             if (!message) return;
             
-            const model = appState.selectedModel;
-            if (!model) {
-                showError('請選擇 AI 模型');
-                return;
+            // 檢查是否為特殊功能
+            const specialFunctions = ['text-to-speech', 'text-to-image', 'image-recognition'];
+            const isSpecialFunction = specialFunctions.includes(appState.currentFunction);
+            
+            // 對於聊天功能，需要檢查模型選擇
+            if (!isSpecialFunction) {
+                const model = appState.selectedModel;
+                if (!model) {
+                    showError('請選擇 AI 模型');
+                    return;
+                }
             }
 
             if (!appState.puterConnected) {
@@ -754,10 +862,10 @@
                 let response;
                 switch (appState.currentFunction) {
                     case 'chat':
-                        response = await handleChat(message, model);
+                        response = await handleChat(message, appState.selectedModel);
                         break;
                     case 'image-recognition':
-                        response = await handleImageRecognition(message, model);
+                        response = await handleImageRecognition(message, appState.selectedModel);
                         break;
                     case 'text-to-speech':
                         response = await handleTextToSpeech(message);
@@ -870,49 +978,21 @@
                     throw new Error('請先上傳圖片文件');
                 }
                 
-                console.log(`正在使用 ${model} 進行圖片識別...`);
+                console.log('正在使用Puter.ai.img2txt進行圖片識別...');
                 
-                // 使用multimodal chat API進行圖片識別
-                const response = await puter.ai.chat([
-                    { 
-                        type: 'text', 
-                        text: message || '請描述這張圖片的內容' 
-                    },
-                    { 
-                        type: 'image', 
-                        image: imageFile 
-                    }
-                ], {
-                    model: model
-                });
+                // 使用Puter.js的img2txt API
+                const response = await puter.ai.img2txt(imageFile, false);
                 
                 console.log('圖片識別 API 回應:', response);
                 
-                // 提取回應文字
+                // img2txt直接返回文字結果
                 let text = '';
-                if (response && typeof response === 'object') {
-                    if (response.message && response.message.content) {
-                        if (Array.isArray(response.message.content)) {
-                            text = response.message.content[0]?.text || response.message.content[0] || '';
-                        } else {
-                            text = response.message.content;
-                        }
-                    } else if (response.content) {
-                        if (Array.isArray(response.content)) {
-                            text = response.content[0]?.text || response.content[0] || '';
-                        } else {
-                            text = response.content;
-                        }
-                    } else if (response.text) {
-                        text = response.text;
-                    } else if (response.choices && response.choices[0]) {
-                        const choice = response.choices[0];
-                        if (choice.message && choice.message.content) {
-                            text = choice.message.content;
-                        }
-                    } else {
-                        text = String(response);
-                    }
+                if (typeof response === 'string') {
+                    text = response;
+                } else if (response && response.text) {
+                    text = response.text;
+                } else if (response && response.content) {
+                    text = response.content;
                 } else {
                     text = String(response);
                 }
@@ -921,8 +1001,13 @@
                     throw new Error('圖片識別未返回有效結果');
                 }
                 
+                // 如果用戶有輸入問題，組合回答
+                const finalText = message 
+                    ? `圖片內容識別結果：${text}\n\n針對您的問題"${message}"的回答：基於識別到的內容，我可以看到${text}`
+                    : `圖片內容：${text}`;
+                
                 return {
-                    text: text,
+                    text: finalText,
                     success: true
                 };
             } catch (error) {
@@ -941,10 +1026,10 @@
                 
                 console.log('語音生成 API 回應:', response);
                 
-                // 直接使用回應作為音訊元素
+                // txt2speech返回音頻元素
                 return {
                     text: `已生成語音內容: "${text}"`,
-                    audioElement: response, // Puter.ai.txt2speech 直接返回音訊元素
+                    audioElement: response, // 直接使用返回的音頻元素
                     success: true
                 };
             } catch (error) {
@@ -962,7 +1047,7 @@
                 
                 console.log('圖片生成 API 回應:', response);
                 
-                // Puter.ai.txt2img 返回圖片數據URL或圖片元素
+                // txt2img返回圖片元素
                 return {
                     text: `已生成圖片: "${prompt}"`,
                     imageElement: response, // 直接使用返回的圖片元素
