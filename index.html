@@ -14,34 +14,116 @@
     
     <!-- 引入 Puter.js -->
     <script>
-        // 檢測瀏覽器兼容性
+        // 在載入 Puter.js 前阻止 Socket.IO 連接
+        window.addEventListener('DOMContentLoaded', () => {
+            // 阻止 Socket.IO 的自動連接
+            if (navigator.brave) {
+                // 創建假的 io 函數來阻止 Socket.IO 初始化
+                window.io = function() {
+                    console.warn('🛡️ Brave 兼容性：Socket.IO 連接已被阻止');
+                    return {
+                        on: () => {},
+                        emit: () => {},
+                        close: () => {},
+                        connect: () => {},
+                        disconnect: () => {}
+                    };
+                };
+                
+                // 阻止 XMLHttpRequest 到特定端點
+                const originalSend = XMLHttpRequest.prototype.send;
+                XMLHttpRequest.prototype.send = function(data) {
+                    if (this._url && this._url.includes('v2/:4')) {
+                        console.warn('🛡️ Brave 兼容性：阻止 Socket.IO 輪詢', this._url);
+                        return;
+                    }
+                    return originalSend.call(this, data);
+                };
+                
+                const originalOpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function(method, url, ...args) {
+                    this._url = url;
+                    if (typeof url === 'string' && url.includes('v2/:4')) {
+                        console.warn('🛡️ Brave 兼容性：阻止開啟 Socket.IO 請求', url);
+                        return;
+                    }
+                    return originalOpen.apply(this, [method, url, ...args]);
+                };
+            }
+        });
+        
+        // 檢測瀏覽器兼容性並配置 Puter.js
         async function loadPuterConditionally() {
             try {
                 const isBrave = navigator.brave && await navigator.brave.isBrave();
+                
                 if (isBrave) {
-                    console.log('🛡️ Brave 瀏覽器檢測到，使用兼容模式加載 Puter.js');
-                    // 延遲加載並添加錯誤處理
-                    setTimeout(() => {
-                        const script = document.createElement('script');
-                        script.src = 'https://js.puter.com/v2/';
-                        script.onerror = () => {
-                            console.warn('Puter.js 載入失敗，使用備用模式');
-                            window.puter = { ai: { chat: () => Promise.reject('Brave compatibility mode') } };
-                        };
-                        document.head.appendChild(script);
-                    }, 1000);
-                } else {
-                    // 正常載入
+                    console.log('🛡️ Brave 瀏覽器檢測到，使用兼容配置載入 Puter.js');
+                    
+                    // 在載入前設置配置，禁用可能導致問題的功能
+                    window.puterConfig = {
+                        disableSocket: true,
+                        useHttpOnly: true,
+                        noWebSocket: true,
+                        testMode: true
+                    };
+                    
                     const script = document.createElement('script');
                     script.src = 'https://js.puter.com/v2/';
+                    script.onload = () => {
+                        console.log('✅ Puter.js 兼容模式載入完成');
+                        // 載入後強制禁用 Socket.IO 相關功能
+                        if (window.puter && window.puter.config) {
+                            window.puter.config.disableSocket = true;
+                            window.puter.config.useHttpOnly = true;
+                        }
+                    };
+                    script.onerror = () => {
+                        console.warn('❌ Puter.js 載入失敗，使用備用模式');
+                        window.puter = createMockPuter();
+                    };
+                    document.head.appendChild(script);
+                    
+                } else {
+                    // 非 Brave 瀏覽器正常載入
+                    const script = document.createElement('script');
+                    script.src = 'https://js.puter.com/v2/';
+                    script.onload = () => {
+                        console.log('✅ Puter.js 正常載入完成');
+                    };
+                    script.onerror = () => {
+                        console.warn('❌ Puter.js 載入失敗，使用備用模式');
+                        window.puter = createMockPuter();
+                    };
                     document.head.appendChild(script);
                 }
             } catch (error) {
                 console.warn('瀏覽器檢測失敗，使用默認載入方式');
                 const script = document.createElement('script');
                 script.src = 'https://js.puter.com/v2/';
+                script.onerror = () => {
+                    console.warn('Puter.js 載入失敗，使用備用模式');
+                    window.puter = createMockPuter();
+                };
                 document.head.appendChild(script);
             }
+        }
+        
+        // 創建 mock Puter 對象的函數
+        function createMockPuter() {
+            return {
+                ai: {
+                    chat: (message, options) => {
+                        return Promise.resolve({
+                            text: `⚠️ Puter.js 服務暫時不可用\n\n原因：網絡連接問題或瀏覽器兼容性限制\n\n建議解決方案：\n1. 重新整理頁面\n2. 檢查網絡連接\n3. 嘗試使用其他瀏覽器\n\n用戶輸入：${message}`
+                        });
+                    },
+                    txt2speech: () => Promise.reject('服務暫時不可用'),
+                    txt2img: () => Promise.reject('服務暫時不可用'),
+                    img2txt: () => Promise.reject('服務暫時不可用')
+                },
+                print: (msg) => console.log(msg)
+            };
         }
         
         loadPuterConditionally();
@@ -447,6 +529,24 @@
 
     <div id="container">
         <div id="chat-container">
+            <!-- Brave 瀏覽器兼容性提示 -->
+            <div id="brave-compatibility-notice" style="display: none; background: linear-gradient(90deg, #ff6b35, #f7931e); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; position: relative;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 24px;">🛡️</span>
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 5px 0; font-size: 16px;">Brave 瀏覽器兼容性問題</h3>
+                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">檢測到您使用 Brave 瀏覽器。為了最佳體驗，請按照以下步驟調整設置：</p>
+                        <ol style="margin: 10px 0 0 0; padding-left: 20px; font-size: 13px;">
+                            <li>點擊地址欄右側的 Brave 圖標</li>
+                            <li>將「廣告和追蹤阻擋」設置為「關閉」</li>
+                            <li>重新整理此頁面</li>
+                        </ol>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">或者您可以使用 Chrome、Firefox 或 Edge 瀏覽器以獲得完整功能。</p>
+                    </div>
+                    <button onclick="hideBraveNotice()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">暫時隱藏</button>
+                </div>
+            </div>
+            
             <!-- 模型選擇 -->
             <div class="model-selector">
                 <select id="model-category" onchange="handleCategoryChange()">
@@ -644,8 +744,24 @@
             
             // 添加全局錯誤處理，防止 Puter.js 錯誤影響應用
             window.addEventListener('error', function(event) {
-                if (event.error && event.error.stack && event.error.stack.includes('v2/:4')) {
-                    console.warn('🛡️ Brave 瀏覽器 Puter.js 兼容性問題已捕獲並忽略');
+                if (event.error && event.error.stack && 
+                    (event.error.stack.includes('v2/:4') || 
+                     event.error.stack.includes('socket.io') ||
+                     event.error.stack.includes('XMLHttpRequest') ||
+                     event.error.stack.includes('doPoll') ||
+                     event.error.stack.includes('reconnect'))) {
+                    console.warn('🛡️ Puter.js 網絡連接問題已捕獲並忽略:', event.error.message);
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                }
+            });
+            
+            // 添加未捕獲的 Promise 拒絕處理
+            window.addEventListener('unhandledrejection', function(event) {
+                if (event.reason && typeof event.reason === 'string' && 
+                    (event.reason.includes('socket') || event.reason.includes('v2'))) {
+                    console.warn('🛡️ Puter.js Promise 拒絕已捕獲並忽略:', event.reason);
                     event.preventDefault();
                     return false;
                 }
@@ -679,6 +795,11 @@
                 
                 if (isBrave) {
                     console.log('🛡️ 檢測到 Brave 瀏覽器，使用兼容模式');
+                    // 顯示 Brave 兼容性提示
+                    const braveNotice = document.getElementById('brave-compatibility-notice');
+                    if (braveNotice && !localStorage.getItem('hideBraveNotice')) {
+                        braveNotice.style.display = 'block';
+                    }
                     // 在 Brave 中跳過某些可能導致循環的檢查
                     appState.puterConnected = true;
                     updateUI();
@@ -696,6 +817,15 @@
             
             // 更新UI狀態
             updateUI();
+        }
+
+        // 隱藏 Brave 提示
+        function hideBraveNotice() {
+            const braveNotice = document.getElementById('brave-compatibility-notice');
+            if (braveNotice) {
+                braveNotice.style.display = 'none';
+                localStorage.setItem('hideBraveNotice', 'true');
+            }
         }
 
         // 設置主題
@@ -857,15 +987,6 @@
             // 檢查是否為特殊功能
             const specialFunctions = ['text-to-speech', 'text-to-image', 'image-recognition'];
             const isSpecialFunction = specialFunctions.includes(appState.currentFunction);
-            
-            // 檢測 Brave 瀏覽器並使用備用 API
-            const isBrave = navigator.brave && await navigator.brave.isBrave();
-            
-            if (isBrave && !isSpecialFunction) {
-                console.log('🛡️ Brave 瀏覽器使用備用 API');
-                await handleBraveCompatibleChat(message);
-                return;
-            }
             
             // 對於聊天功能，需要檢查模型選擇
             if (!isSpecialFunction) {
@@ -1237,65 +1358,6 @@
         window.addEventListener('load', function() {
             setTimeout(silentCheckPuterStatus, 1000);
         });
-
-        // Brave 瀏覽器兼容的聊天處理
-        async function handleBraveCompatibleChat(message) {
-            try {
-                appState.loading = true;
-                updateUI();
-                
-                // 添加用戶消息到聊天框
-                addMessage('user', message);
-                elements.messageInput.value = '';
-                
-                // 顯示載入提示
-                const loadingId = Date.now();
-                addMessage('ai', '思考中...', loadingId);
-                
-                // 使用更簡單的 API 調用，避免 Socket.IO 問題
-                let response;
-                try {
-                    // 嘗試直接 HTTP 請求而非 WebSocket
-                    response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message,
-                            model: appState.selectedModel,
-                            mode: 'http' // 強制使用 HTTP 模式
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('API 調用失敗');
-                    
-                    const data = await response.json();
-                    updateMessage(loadingId, data.response || '抱歉，無法獲取回應。');
-                    
-                } catch (apiError) {
-                    console.warn('API 調用失敗，嘗試使用 Puter.js');
-                    
-                    // 備用：嘗試使用 Puter.js（但添加超時）
-                    const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('超時')), 5000)
-                    );
-                    
-                    const chatPromise = puter.ai.chat(message, { 
-                        model: appState.selectedModel,
-                        stream: false // 禁用流式傳輸
-                    });
-                    
-                    response = await Promise.race([chatPromise, timeoutPromise]);
-                    updateMessage(loadingId, response || '回應獲取超時，請重試。');
-                }
-                
-            } catch (error) {
-                console.error('Brave 兼容模式錯誤:', error);
-                updateMessage(loadingId, '⚠️ Brave 瀏覽器兼容性問題，建議使用其他瀏覽器以獲得最佳體驗。');
-            } finally {
-                appState.loading = false;
-                updateUI();
-            }
-        }
     </script>
 </body>
 </html>
