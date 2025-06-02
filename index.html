@@ -13,7 +13,39 @@
     <meta name="google-adsense-account" content="ca-pub-5692204516534246">
     
     <!-- 引入 Puter.js -->
-    <script src="https://js.puter.com/v2/"></script>
+    <script>
+        // 檢測瀏覽器兼容性
+        async function loadPuterConditionally() {
+            try {
+                const isBrave = navigator.brave && await navigator.brave.isBrave();
+                if (isBrave) {
+                    console.log('🛡️ Brave 瀏覽器檢測到，使用兼容模式加載 Puter.js');
+                    // 延遲加載並添加錯誤處理
+                    setTimeout(() => {
+                        const script = document.createElement('script');
+                        script.src = 'https://js.puter.com/v2/';
+                        script.onerror = () => {
+                            console.warn('Puter.js 載入失敗，使用備用模式');
+                            window.puter = { ai: { chat: () => Promise.reject('Brave compatibility mode') } };
+                        };
+                        document.head.appendChild(script);
+                    }, 1000);
+                } else {
+                    // 正常載入
+                    const script = document.createElement('script');
+                    script.src = 'https://js.puter.com/v2/';
+                    document.head.appendChild(script);
+                }
+            } catch (error) {
+                console.warn('瀏覽器檢測失敗，使用默認載入方式');
+                const script = document.createElement('script');
+                script.src = 'https://js.puter.com/v2/';
+                document.head.appendChild(script);
+            }
+        }
+        
+        loadPuterConditionally();
+    </script>
     
     <style>
         body {
@@ -610,6 +642,15 @@
         function initApp() {
             console.log('初始化應用...');
             
+            // 添加全局錯誤處理，防止 Puter.js 錯誤影響應用
+            window.addEventListener('error', function(event) {
+                if (event.error && event.error.stack && event.error.stack.includes('v2/:4')) {
+                    console.warn('🛡️ Brave 瀏覽器 Puter.js 兼容性問題已捕獲並忽略');
+                    event.preventDefault();
+                    return false;
+                }
+            });
+            
             // 載入本地儲存的主題
             const savedTheme = localStorage.getItem('theme') || 'light';
             setTheme(savedTheme);
@@ -629,6 +670,17 @@
                 if (typeof puter === 'undefined') {
                     console.warn('Puter.js 未載入');
                     appState.puterConnected = false;
+                    updateUI();
+                    return;
+                }
+                
+                // 檢測是否為 Brave 瀏覽器
+                const isBrave = navigator.brave && await navigator.brave.isBrave();
+                
+                if (isBrave) {
+                    console.log('🛡️ 檢測到 Brave 瀏覽器，使用兼容模式');
+                    // 在 Brave 中跳過某些可能導致循環的檢查
+                    appState.puterConnected = true;
                     updateUI();
                     return;
                 }
@@ -805,6 +857,15 @@
             // 檢查是否為特殊功能
             const specialFunctions = ['text-to-speech', 'text-to-image', 'image-recognition'];
             const isSpecialFunction = specialFunctions.includes(appState.currentFunction);
+            
+            // 檢測 Brave 瀏覽器並使用備用 API
+            const isBrave = navigator.brave && await navigator.brave.isBrave();
+            
+            if (isBrave && !isSpecialFunction) {
+                console.log('🛡️ Brave 瀏覽器使用備用 API');
+                await handleBraveCompatibleChat(message);
+                return;
+            }
             
             // 對於聊天功能，需要檢查模型選擇
             if (!isSpecialFunction) {
@@ -1176,6 +1237,65 @@
         window.addEventListener('load', function() {
             setTimeout(silentCheckPuterStatus, 1000);
         });
+
+        // Brave 瀏覽器兼容的聊天處理
+        async function handleBraveCompatibleChat(message) {
+            try {
+                appState.loading = true;
+                updateUI();
+                
+                // 添加用戶消息到聊天框
+                addMessage('user', message);
+                elements.messageInput.value = '';
+                
+                // 顯示載入提示
+                const loadingId = Date.now();
+                addMessage('ai', '思考中...', loadingId);
+                
+                // 使用更簡單的 API 調用，避免 Socket.IO 問題
+                let response;
+                try {
+                    // 嘗試直接 HTTP 請求而非 WebSocket
+                    response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message,
+                            model: appState.selectedModel,
+                            mode: 'http' // 強制使用 HTTP 模式
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('API 調用失敗');
+                    
+                    const data = await response.json();
+                    updateMessage(loadingId, data.response || '抱歉，無法獲取回應。');
+                    
+                } catch (apiError) {
+                    console.warn('API 調用失敗，嘗試使用 Puter.js');
+                    
+                    // 備用：嘗試使用 Puter.js（但添加超時）
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('超時')), 5000)
+                    );
+                    
+                    const chatPromise = puter.ai.chat(message, { 
+                        model: appState.selectedModel,
+                        stream: false // 禁用流式傳輸
+                    });
+                    
+                    response = await Promise.race([chatPromise, timeoutPromise]);
+                    updateMessage(loadingId, response || '回應獲取超時，請重試。');
+                }
+                
+            } catch (error) {
+                console.error('Brave 兼容模式錯誤:', error);
+                updateMessage(loadingId, '⚠️ Brave 瀏覽器兼容性問題，建議使用其他瀏覽器以獲得最佳體驗。');
+            } finally {
+                appState.loading = false;
+                updateUI();
+            }
+        }
     </script>
 </body>
 </html>
