@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puter.js AI 接口测试</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background-color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        input, select, textarea {
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .loading {
+            color: #007bff;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Puter.js AI 接口测试</h1>
+    <p>测试重新实现的 AI 接口是否正常工作</p>
+
+    <!-- Chat 测试 -->
+    <div class="test-section">
+        <h3>1. Chat API 测试</h3>
+        <select id="chat-model">
+            <option value="gpt-4o-mini">GPT-4o Mini</option>
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+        </select>
+        <input type="text" id="chat-input" placeholder="输入问题..." value="Hello, 请简短回答你是谁？">
+        <button onclick="testChat()">测试聊天</button>
+        <div id="chat-result" class="result"></div>
+    </div>
+
+    <!-- 图片生成测试 -->
+    <div class="test-section">
+        <h3>2. 图片生成测试</h3>
+        <input type="text" id="img-prompt" placeholder="图片描述..." value="一只可爱的橙色小猫在花园里玩耍">
+        <button onclick="testImageGeneration()">生成图片</button>
+        <div id="img-result" class="result"></div>
+    </div>
+
+    <!-- 语音生成测试 -->
+    <div class="test-section">
+        <h3>3. 语音生成测试</h3>
+        <select id="tts-language">
+            <option value="zh-TW">中文(繁體)</option>
+            <option value="zh-CN">中文(简体)</option>
+            <option value="en-US">English (US)</option>
+            <option value="ja-JP">日本語</option>
+        </select>
+        <input type="text" id="tts-text" placeholder="要转换的文字..." value="你好，这是语音测试">
+        <button onclick="testTextToSpeech()">生成语音</button>
+        <div id="tts-result" class="result"></div>
+    </div>
+
+    <!-- 图片识别测试 -->
+    <div class="test-section">
+        <h3>4. 图片识别测试</h3>
+        <input type="file" id="ocr-file" accept="image/*">
+        <input type="text" id="ocr-question" placeholder="关于图片的问题（可选）..." value="这张图片说了什么？">
+        <button onclick="testImageRecognition()">识别图片</button>
+        <div id="ocr-result" class="result"></div>
+    </div>
+
+    <!-- GPT Vision 测试 -->
+    <div class="test-section">
+        <h3>5. GPT Vision 测试</h3>
+        <input type="file" id="vision-file" accept="image/*">
+        <input type="text" id="vision-question" placeholder="关于图片的问题..." value="请描述这张图片">
+        <button onclick="testGPTVision()">GPT Vision</button>
+        <div id="vision-result" class="result"></div>
+    </div>
+
+    <script>
+        async function testChat() {
+            const model = document.getElementById('chat-model').value;
+            const input = document.getElementById('chat-input').value;
+            const resultDiv = document.getElementById('chat-result');
+            
+            if (!input.trim()) {
+                resultDiv.textContent = '请输入问题';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在测试聊天功能...';
+            resultDiv.className = 'result loading';
+            
+            try {
+                const response = await puter.ai.chat(input, { model: model });
+                console.log('Chat API 返回:', response);
+                
+                let text = '';
+                if (typeof response === 'string') {
+                    text = response;
+                } else if (response && response.content) {
+                    text = response.content;
+                } else if (response && response.text) {
+                    text = response.text;
+                } else if (response && response.message) {
+                    if (typeof response.message === 'string') {
+                        text = response.message;
+                    } else if (response.message.content) {
+                        if (Array.isArray(response.message.content)) {
+                            text = response.message.content[0]?.text || response.message.content[0] || '';
+                        } else {
+                            text = response.message.content;
+                        }
+                    }
+                } else {
+                    text = JSON.stringify(response, null, 2);
+                }
+                
+                resultDiv.textContent = `✅ 成功！回应：\n${text}`;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                console.error('Chat 测试失败:', error);
+                resultDiv.textContent = `❌ 失败：${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testImageGeneration() {
+            const prompt = document.getElementById('img-prompt').value;
+            const resultDiv = document.getElementById('img-result');
+            
+            if (!prompt.trim()) {
+                resultDiv.textContent = '请输入图片描述';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在生成图片...';
+            resultDiv.className = 'result loading';
+            
+            try {
+                const imageElement = await puter.ai.txt2img(prompt, false);
+                console.log('Image Generation API 返回:', imageElement);
+                
+                resultDiv.innerHTML = '';
+                resultDiv.appendChild(document.createTextNode('✅ 图片生成成功！\n'));
+                
+                if (imageElement && imageElement.tagName === 'IMG') {
+                    imageElement.style.maxWidth = '100%';
+                    imageElement.style.height = 'auto';
+                    imageElement.style.borderRadius = '8px';
+                    imageElement.style.marginTop = '10px';
+                    resultDiv.appendChild(imageElement);
+                } else if (typeof imageElement === 'string') {
+                    const img = document.createElement('img');
+                    img.src = imageElement;
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.borderRadius = '8px';
+                    img.style.marginTop = '10px';
+                    resultDiv.appendChild(img);
+                }
+                
+                resultDiv.className = 'result success';
+            } catch (error) {
+                console.error('Image Generation 测试失败:', error);
+                resultDiv.textContent = `❌ 失败：${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testTextToSpeech() {
+            const text = document.getElementById('tts-text').value;
+            const language = document.getElementById('tts-language').value;
+            const resultDiv = document.getElementById('tts-result');
+            
+            if (!text.trim()) {
+                resultDiv.textContent = '请输入要转换的文字';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在生成语音...';
+            resultDiv.className = 'result loading';
+            
+            try {
+                const audioElement = await puter.ai.txt2speech(text, language, false);
+                console.log('Text to Speech API 返回:', audioElement);
+                
+                resultDiv.innerHTML = '';
+                resultDiv.appendChild(document.createTextNode('✅ 语音生成成功！\n'));
+                
+                if (audioElement && audioElement.play) {
+                    audioElement.controls = true;
+                    audioElement.style.width = '100%';
+                    audioElement.style.marginTop = '10px';
+                    resultDiv.appendChild(audioElement);
+                } else {
+                    const audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.style.width = '100%';
+                    audio.style.marginTop = '10px';
+                    
+                    if (audioElement instanceof Blob) {
+                        const audioUrl = URL.createObjectURL(audioElement);
+                        audio.src = audioUrl;
+                    } else if (typeof audioElement === 'string') {
+                        audio.src = audioElement;
+                    }
+                    
+                    resultDiv.appendChild(audio);
+                }
+                
+                resultDiv.className = 'result success';
+            } catch (error) {
+                console.error('Text to Speech 测试失败:', error);
+                resultDiv.textContent = `❌ 失败：${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testImageRecognition() {
+            const fileInput = document.getElementById('ocr-file');
+            const question = document.getElementById('ocr-question').value;
+            const resultDiv = document.getElementById('ocr-result');
+            
+            if (!fileInput.files[0]) {
+                resultDiv.textContent = '请选择图片文件';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在识别图片...';
+            resultDiv.className = 'result loading';
+            
+            try {
+                const ocrResult = await puter.ai.img2txt(fileInput.files[0], false);
+                console.log('Image Recognition API 返回:', ocrResult);
+                
+                let finalText = `✅ OCR 识别成功！\n识别结果：\n${ocrResult}`;
+                
+                if (question && question.trim()) {
+                    const analysisPrompt = `图片中识别到的文字内容：\n${ocrResult}\n\n用户问题：${question}\n\n请基于识别到的文字内容回答用户的问题。`;
+                    const analysisResponse = await puter.ai.chat(analysisPrompt, { model: 'gpt-4o-mini' });
+                    
+                    let analysisText = '';
+                    if (typeof analysisResponse === 'string') {
+                        analysisText = analysisResponse;
+                    } else if (analysisResponse && analysisResponse.content) {
+                        analysisText = analysisResponse.content;
+                    } else if (analysisResponse && analysisResponse.message) {
+                        analysisText = analysisResponse.message.content || analysisResponse.message;
+                    }
+                    
+                    finalText += `\n\nAI分析回答：\n${analysisText}`;
+                }
+                
+                resultDiv.textContent = finalText;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                console.error('Image Recognition 测试失败:', error);
+                resultDiv.textContent = `❌ 失败：${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testGPTVision() {
+            const fileInput = document.getElementById('vision-file');
+            const question = document.getElementById('vision-question').value;
+            const resultDiv = document.getElementById('vision-result');
+            
+            if (!fileInput.files[0]) {
+                resultDiv.textContent = '请选择图片文件';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            if (!question.trim()) {
+                resultDiv.textContent = '请输入关于图片的问题';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在使用 GPT Vision...';
+            resultDiv.className = 'result loading';
+            
+            try {
+                const imageUrl = URL.createObjectURL(fileInput.files[0]);
+                const response = await puter.ai.chat(question, imageUrl, false, { model: 'gpt-4o' });
+                console.log('GPT Vision API 返回:', response);
+                
+                let text = '';
+                if (typeof response === 'string') {
+                    text = response;
+                } else if (response && response.content) {
+                    text = response.content;
+                } else if (response && response.message) {
+                    text = response.message.content || response.message;
+                }
+                
+                URL.revokeObjectURL(imageUrl);
+                
+                resultDiv.textContent = `✅ GPT Vision 成功！\n回应：\n${text}`;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                console.error('GPT Vision 测试失败:', error);
+                resultDiv.textContent = `❌ 失败：${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 页面加载完成后检查 Puter.js 状态
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                if (typeof puter === 'undefined') {
+                    alert('Puter.js 未加载成功，请检查网络连接');
+                } else {
+                    console.log('✅ Puter.js 加载成功');
+                    // 简单测试连接
+                    puter.ai.chat("test", { model: 'gpt-4o-mini' }).then(() => {
+                        console.log('✅ Puter AI 服务连接正常');
+                    }).catch(error => {
+                        console.warn('⚠️ Puter AI 服务连接异常:', error);
+                    });
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

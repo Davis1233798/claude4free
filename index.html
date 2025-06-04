@@ -13,121 +13,7 @@
     <meta name="google-adsense-account" content="ca-pub-5692204516534246">
     
     <!-- 引入 Puter.js -->
-    <script>
-        // 在載入 Puter.js 前阻止 Socket.IO 連接
-        window.addEventListener('DOMContentLoaded', () => {
-            // 阻止 Socket.IO 的自動連接
-            if (navigator.brave) {
-                // 創建假的 io 函數來阻止 Socket.IO 初始化
-                window.io = function() {
-                    console.warn('🛡️ Brave 兼容性：Socket.IO 連接已被阻止');
-                    return {
-                        on: () => {},
-                        emit: () => {},
-                        close: () => {},
-                        connect: () => {},
-                        disconnect: () => {}
-                    };
-                };
-                
-                // 阻止 XMLHttpRequest 到特定端點
-                const originalSend = XMLHttpRequest.prototype.send;
-                XMLHttpRequest.prototype.send = function(data) {
-                    if (this._url && this._url.includes('v2/:4')) {
-                        console.warn('🛡️ Brave 兼容性：阻止 Socket.IO 輪詢', this._url);
-                        return;
-                    }
-                    return originalSend.call(this, data);
-                };
-                
-                const originalOpen = XMLHttpRequest.prototype.open;
-                XMLHttpRequest.prototype.open = function(method, url, ...args) {
-                    this._url = url;
-                    if (typeof url === 'string' && url.includes('v2/:4')) {
-                        console.warn('🛡️ Brave 兼容性：阻止開啟 Socket.IO 請求', url);
-                        return;
-                    }
-                    return originalOpen.apply(this, [method, url, ...args]);
-                };
-            }
-        });
-        
-        // 檢測瀏覽器兼容性並配置 Puter.js
-        async function loadPuterConditionally() {
-            try {
-                const isBrave = navigator.brave && await navigator.brave.isBrave();
-                
-                if (isBrave) {
-                    console.log('🛡️ Brave 瀏覽器檢測到，使用兼容配置載入 Puter.js');
-                    
-                    // 在載入前設置配置，禁用可能導致問題的功能
-                    window.puterConfig = {
-                        disableSocket: true,
-                        useHttpOnly: true,
-                        noWebSocket: true,
-                        testMode: true
-                    };
-                    
-                    const script = document.createElement('script');
-                    script.src = 'https://js.puter.com/v2/';
-                    script.onload = () => {
-                        console.log('✅ Puter.js 兼容模式載入完成');
-                        // 載入後強制禁用 Socket.IO 相關功能
-                        if (window.puter && window.puter.config) {
-                            window.puter.config.disableSocket = true;
-                            window.puter.config.useHttpOnly = true;
-                        }
-                    };
-                    script.onerror = () => {
-                        console.warn('❌ Puter.js 載入失敗，使用備用模式');
-                        window.puter = createMockPuter();
-                    };
-                    document.head.appendChild(script);
-                    
-                } else {
-                    // 非 Brave 瀏覽器正常載入
-                    const script = document.createElement('script');
-                    script.src = 'https://js.puter.com/v2/';
-                    script.onload = () => {
-                        console.log('✅ Puter.js 正常載入完成');
-                    };
-                    script.onerror = () => {
-                        console.warn('❌ Puter.js 載入失敗，使用備用模式');
-                        window.puter = createMockPuter();
-                    };
-                    document.head.appendChild(script);
-                }
-            } catch (error) {
-                console.warn('瀏覽器檢測失敗，使用默認載入方式');
-                const script = document.createElement('script');
-                script.src = 'https://js.puter.com/v2/';
-                script.onerror = () => {
-                    console.warn('Puter.js 載入失敗，使用備用模式');
-                    window.puter = createMockPuter();
-                };
-                document.head.appendChild(script);
-            }
-        }
-        
-        // 創建 mock Puter 對象的函數
-        function createMockPuter() {
-            return {
-                ai: {
-                    chat: (message, options) => {
-                        return Promise.resolve({
-                            text: `⚠️ Puter.js 服務暫時不可用\n\n原因：網絡連接問題或瀏覽器兼容性限制\n\n建議解決方案：\n1. 重新整理頁面\n2. 檢查網絡連接\n3. 嘗試使用其他瀏覽器\n\n用戶輸入：${message}`
-                        });
-                    },
-                    txt2speech: () => Promise.reject('服務暫時不可用'),
-                    txt2img: () => Promise.reject('服務暫時不可用'),
-                    img2txt: () => Promise.reject('服務暫時不可用')
-                },
-                print: (msg) => console.log(msg)
-            };
-        }
-        
-        loadPuterConditionally();
-    </script>
+    <script src="https://js.puter.com/v2/"></script>
     
     <style>
         body {
@@ -529,24 +415,6 @@
 
     <div id="container">
         <div id="chat-container">
-            <!-- Brave 瀏覽器兼容性提示 -->
-            <div id="brave-compatibility-notice" style="display: none; background: linear-gradient(90deg, #ff6b35, #f7931e); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; position: relative;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 24px;">🛡️</span>
-                    <div style="flex: 1;">
-                        <h3 style="margin: 0 0 5px 0; font-size: 16px;">Brave 瀏覽器兼容性問題</h3>
-                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">檢測到您使用 Brave 瀏覽器。為了最佳體驗，請按照以下步驟調整設置：</p>
-                        <ol style="margin: 10px 0 0 0; padding-left: 20px; font-size: 13px;">
-                            <li>點擊地址欄右側的 Brave 圖標</li>
-                            <li>將「廣告和追蹤阻擋」設置為「關閉」</li>
-                            <li>重新整理此頁面</li>
-                        </ol>
-                        <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">或者您可以使用 Chrome、Firefox 或 Edge 瀏覽器以獲得完整功能。</p>
-                    </div>
-                    <button onclick="hideBraveNotice()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">暫時隱藏</button>
-                </div>
-            </div>
-            
             <!-- 模型選擇 -->
             <div class="model-selector">
                 <select id="model-category" onchange="handleCategoryChange()">
@@ -681,18 +549,21 @@
             puterConnected: false
         };
 
-        // 模型配置
+        // 模型配置 - 根据最新Puter.js API文档更新
         const modelConfig = {
             openai: {
-                'gpt-4o': 'GPT-4o',
                 'gpt-4o-mini': 'GPT-4o Mini',
-                'gpt-4.5-preview': 'GPT-4.5 Preview',
+                'gpt-4o': 'GPT-4o',
                 'o1': 'o1',
                 'o1-mini': 'o1 Mini',
+                'o1-pro': 'o1 Pro',
+                'o3': 'o3',
                 'o3-mini': 'o3 Mini',
                 'o4-mini': 'o4 Mini',
                 'gpt-4.1': 'GPT-4.1',
-                'gpt-4.1-mini': 'GPT-4.1 Mini'
+                'gpt-4.1-mini': 'GPT-4.1 Mini',
+                'gpt-4.1-nano': 'GPT-4.1 Nano',
+                'gpt-4.5-preview': 'GPT-4.5 Preview'
             },
             anthropic: {
                 'claude-sonnet-4': 'Claude Sonnet 4',
@@ -719,7 +590,8 @@
                 'deepseek-reasoner': 'DeepSeek Reasoner'
             },
             other: {
-                'grok-beta': 'Grok Beta'
+                'grok-beta': 'Grok Beta',
+                'google/gemma-2-27b-it': 'Gemma 2 27B'
             }
         };
 
@@ -741,31 +613,6 @@
         // 初始化應用
         function initApp() {
             console.log('初始化應用...');
-            
-            // 添加全局錯誤處理，防止 Puter.js 錯誤影響應用
-            window.addEventListener('error', function(event) {
-                if (event.error && event.error.stack && 
-                    (event.error.stack.includes('v2/:4') || 
-                     event.error.stack.includes('socket.io') ||
-                     event.error.stack.includes('XMLHttpRequest') ||
-                     event.error.stack.includes('doPoll') ||
-                     event.error.stack.includes('reconnect'))) {
-                    console.warn('🛡️ Puter.js 網絡連接問題已捕獲並忽略:', event.error.message);
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return false;
-                }
-            });
-            
-            // 添加未捕獲的 Promise 拒絕處理
-            window.addEventListener('unhandledrejection', function(event) {
-                if (event.reason && typeof event.reason === 'string' && 
-                    (event.reason.includes('socket') || event.reason.includes('v2'))) {
-                    console.warn('🛡️ Puter.js Promise 拒絕已捕獲並忽略:', event.reason);
-                    event.preventDefault();
-                    return false;
-                }
-            });
             
             // 載入本地儲存的主題
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -790,24 +637,8 @@
                     return;
                 }
                 
-                // 檢測是否為 Brave 瀏覽器
-                const isBrave = navigator.brave && await navigator.brave.isBrave();
-                
-                if (isBrave) {
-                    console.log('🛡️ 檢測到 Brave 瀏覽器，使用兼容模式');
-                    // 顯示 Brave 兼容性提示
-                    const braveNotice = document.getElementById('brave-compatibility-notice');
-                    if (braveNotice && !localStorage.getItem('hideBraveNotice')) {
-                        braveNotice.style.display = 'block';
-                    }
-                    // 在 Brave 中跳過某些可能導致循環的檢查
-                    appState.puterConnected = true;
-                    updateUI();
-                    return;
-                }
-                
                 // 簡單測試Puter AI服務
-                await puter.ai.chat("Hello", { model: 'gpt-4o-mini' });
+                await puter.ai.chat("test", { model: 'gpt-4o-mini' });
                 console.log('✅ Puter AI 服務連接正常');
                 appState.puterConnected = true;
             } catch (error) {
@@ -817,15 +648,6 @@
             
             // 更新UI狀態
             updateUI();
-        }
-
-        // 隱藏 Brave 提示
-        function hideBraveNotice() {
-            const braveNotice = document.getElementById('brave-compatibility-notice');
-            if (braveNotice) {
-                braveNotice.style.display = 'none';
-                localStorage.setItem('hideBraveNotice', 'true');
-            }
         }
 
         // 設置主題
@@ -1047,64 +869,49 @@
             }
         }
 
-        // 處理聊天
+        // 處理聊天 - 根據最新Puter.js API重新實現
         async function handleChat(message, model) {
             try {
                 console.log(`正在調用 ${model} 進行對話...`);
+                
+                // 使用最新的Puter.js API格式
                 const response = await puter.ai.chat(message, {
                     model: model
                 });
                 
                 console.log('API 回應:', response);
                 
-                // 處理不同AI模型的回應格式
+                // 根据最新API文档，chat()返回的响应应该直接包含文本内容
                 let text = '';
-                if (response && typeof response === 'object') {
-                    // 處理標準回應格式
-                    if (response.message && response.message.content) {
+                if (typeof response === 'string') {
+                    text = response;
+                } else if (response && response.content) {
+                    text = response.content;
+                } else if (response && response.text) {
+                    text = response.text;
+                } else if (response && response.message) {
+                    if (typeof response.message === 'string') {
+                        text = response.message;
+                    } else if (response.message.content) {
                         if (Array.isArray(response.message.content)) {
                             text = response.message.content[0]?.text || response.message.content[0] || '';
                         } else {
                             text = response.message.content;
                         }
-                    } 
-                    // 處理其他格式回應
-                    else if (response.content) {
-                        if (Array.isArray(response.content)) {
-                            text = response.content[0]?.text || response.content[0] || '';
-                        } else {
-                            text = response.content;
-                        }
-                    } 
-                    else if (response.text) {
-                        text = response.text;
-                    } 
-                    else if (response.response) {
-                        text = response.response;
-                    } 
-                    // 處理特殊情況（避免顯示原始JSON）
-                    else if (response.index !== undefined && response.finish_reason) {
-                        text = '模型回應格式異常，請重試或選擇其他模型。';
                     }
-                    // 對於DeepSeek等模型的特殊格式
-                    else if (response.choices && response.choices[0]) {
-                        const choice = response.choices[0];
-                        if (choice.message && choice.message.content) {
-                            text = choice.message.content;
-                        } else if (choice.text) {
-                            text = choice.text;
-                        }
-                    }
-                    // 最後嘗試直接使用字符串表示
-                    else {
-                        text = String(response);
-                        // 但如果是長JSON，提供更友善的錯誤
-                        if (text.length > 500 && text.includes('{') && text.includes('}')) {
-                            text = '收到了模型回應，但格式需要調整。請重試或選擇其他模型。';
-                        }
+                } else if (response && response.choices && response.choices[0]) {
+                    const choice = response.choices[0];
+                    if (choice.message && choice.message.content) {
+                        text = choice.message.content;
+                    } else if (choice.text) {
+                        text = choice.text;
                     }
                 } else {
+                    // 最后尝试转换为字符串
                     text = String(response);
+                    if (text.length > 500 && text.includes('{') && text.includes('}')) {
+                        text = '收到了模型回應，但格式異常。請重試或選擇其他模型。';
+                    }
                 }
                 
                 if (!text || text.trim() === '') {
@@ -1121,7 +928,7 @@
             }
         }
 
-        // 處理圖片識別
+        // 處理圖片識別 - 根據最新Puter.js API重新實現，支持GPT Vision
         async function handleImageRecognition(message, model) {
             try {
                 const imageFile = elements.imageInput.files[0];
@@ -1129,14 +936,67 @@
                     throw new Error('請先上傳圖片文件');
                 }
                 
-                console.log('正在使用Puter.ai.img2txt進行圖片識別...');
+                console.log('正在使用圖片識別功能...');
                 
-                // 根據Puter API文檔，img2txt直接接受File對象並返回字符串
+                // 如果用戶有問題，優先使用GPT Vision功能
+                if (message && message.trim()) {
+                    console.log('使用 GPT Vision 功能進行圖片分析...');
+                    
+                    // 創建圖片URL用於GPT Vision
+                    const imageUrl = URL.createObjectURL(imageFile);
+                    
+                    try {
+                        // 使用 puter.ai.chat 的 GPT Vision 功能
+                        const response = await puter.ai.chat(message, imageUrl, false, { model: model });
+                        
+                        let text = '';
+                        if (typeof response === 'string') {
+                            text = response;
+                        } else if (response && response.content) {
+                            text = response.content;
+                        } else if (response && response.text) {
+                            text = response.text;
+                        } else if (response && response.message) {
+                            if (typeof response.message === 'string') {
+                                text = response.message;
+                            } else if (response.message.content) {
+                                if (Array.isArray(response.message.content)) {
+                                    text = response.message.content[0]?.text || '';
+                                } else {
+                                    text = response.message.content;
+                                }
+                            }
+                        } else {
+                            text = String(response);
+                        }
+                        
+                        // 清理圖片URL
+                        URL.revokeObjectURL(imageUrl);
+                        
+                        if (!text || text.trim() === '') {
+                            throw new Error('GPT Vision 未返回有效回應');
+                        }
+                        
+                        return {
+                            text: text,
+                            success: true
+                        };
+                    } catch (visionError) {
+                        console.warn('GPT Vision 失敗，回退到 OCR + AI 分析:', visionError);
+                        URL.revokeObjectURL(imageUrl);
+                        // 繼續使用OCR方式
+                    }
+                }
+                
+                // 使用 OCR 方式（作為備用或無問題時使用）
+                console.log('正在使用 Puter.ai.img2txt 進行圖片識別...');
+                
+                // 根據最新API文檔，img2txt接受File對象並返回文字字串
                 const ocrResult = await puter.ai.img2txt(imageFile, false);
                 
                 console.log('圖片識別 API 回應:', ocrResult);
                 
-                // img2txt直接返回提取到的文字字符串
+                // img2txt應該直接返回提取到的文字字符串
                 if (!ocrResult || typeof ocrResult !== 'string' || ocrResult.trim() === '') {
                     throw new Error('圖片識別未返回有效結果');
                 }
@@ -1146,17 +1006,26 @@
                 if (message && message.trim()) {
                     // 使用AI分析OCR結果並回答用戶問題
                     const analysisPrompt = `圖片中識別到的文字內容：\n${ocrResult}\n\n用戶問題：${message}\n\n請基於識別到的文字內容回答用戶的問題。`;
+                    
                     const analysisResponse = await puter.ai.chat(analysisPrompt, { model: model });
                     
                     // 解析AI回應
                     let analysisText = '';
-                    if (analysisResponse && typeof analysisResponse === 'object') {
-                        if (analysisResponse.message && analysisResponse.message.content && Array.isArray(analysisResponse.message.content)) {
-                            analysisText = analysisResponse.message.content[0]?.text || '';
-                        } else if (analysisResponse.content) {
-                            analysisText = analysisResponse.content;
-                        } else if (analysisResponse.text) {
-                            analysisText = analysisResponse.text;
+                    if (typeof analysisResponse === 'string') {
+                        analysisText = analysisResponse;
+                    } else if (analysisResponse && analysisResponse.content) {
+                        analysisText = analysisResponse.content;
+                    } else if (analysisResponse && analysisResponse.text) {
+                        analysisText = analysisResponse.text;
+                    } else if (analysisResponse && analysisResponse.message) {
+                        if (typeof analysisResponse.message === 'string') {
+                            analysisText = analysisResponse.message;
+                        } else if (analysisResponse.message.content) {
+                            if (Array.isArray(analysisResponse.message.content)) {
+                                analysisText = analysisResponse.message.content[0]?.text || '';
+                            } else {
+                                analysisText = analysisResponse.message.content;
+                            }
                         }
                     } else {
                         analysisText = String(analysisResponse);
@@ -1177,68 +1046,114 @@
             }
         }
 
-        // 處理語音生成
+        // 處理語音生成 - 根據最新Puter.js API重新實現
         async function handleTextToSpeech(text) {
             try {
                 const language = document.getElementById('tts-language').value || 'zh-TW';
                 
                 console.log('正在生成語音...');
                 
-                // 根據Puter API文檔，txt2speech接受文字和語言參數，返回音頻流
-                const audioStream = await puter.ai.txt2speech(text, language, false);
+                // 根據最新API文檔，txt2speech接受文字和語言參數，返回音頻元素
+                const audioElement = await puter.ai.txt2speech(text, language, false);
                 
-                console.log('語音生成 API 回應:', audioStream);
+                console.log('語音生成 API 回應:', audioElement);
                 
-                // txt2speech返回MP3音頻流，需要創建音頻元素
-                const audioElement = document.createElement('audio');
-                audioElement.controls = true;
-                audioElement.style.width = '100%';
-                audioElement.style.margin = '10px 0';
-                
-                // 如果audioStream是Blob，轉換為URL
-                if (audioStream instanceof Blob) {
-                    const audioUrl = URL.createObjectURL(audioStream);
-                    audioElement.src = audioUrl;
-                } else if (audioStream && audioStream.play) {
-                    // 如果已經是音頻元素，直接使用
-                    return {
-                        text: `已生成語音內容: "${text}"`,
-                        audioElement: audioStream,
-                        success: true
-                    };
-                } else if (typeof audioStream === 'string') {
-                    // 如果是URL字符串
-                    audioElement.src = audioStream;
-                } else {
-                    throw new Error('語音生成返回格式異常');
+                // txt2speech應該返回一個可以播放的音頻元素
+                if (!audioElement) {
+                    throw new Error('語音生成失敗，未返回音頻內容');
                 }
                 
-                return {
-                    text: `已生成語音內容: "${text}"`,
-                    audioElement: audioElement,
-                    success: true
-                };
+                // 如果返回的是音頻元素，直接使用
+                if (audioElement.play && typeof audioElement.play === 'function') {
+                    audioElement.controls = true;
+                    audioElement.style.width = '100%';
+                    audioElement.style.margin = '10px 0';
+                    
+                    return {
+                        text: `已生成語音內容: "${text}"`,
+                        audioElement: audioElement,
+                        success: true
+                    };
+                } 
+                // 如果是其他格式，嘗試創建音頻元素
+                else {
+                    const audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.style.width = '100%';
+                    audio.style.margin = '10px 0';
+                    
+                    if (audioElement instanceof Blob) {
+                        const audioUrl = URL.createObjectURL(audioElement);
+                        audio.src = audioUrl;
+                    } else if (typeof audioElement === 'string') {
+                        audio.src = audioElement;
+                    } else {
+                        throw new Error('語音生成返回格式異常');
+                    }
+                    
+                    return {
+                        text: `已生成語音內容: "${text}"`,
+                        audioElement: audio,
+                        success: true
+                    };
+                }
             } catch (error) {
                 console.error('語音生成錯誤:', error);
                 throw new Error(`語音生成功能暫時不可用: ${error.message}`);
             }
         }
 
-        // 處理圖片生成
+        // 處理圖片生成 - 根據最新Puter.js API重新實現
         async function handleTextToImage(prompt) {
             try {
                 console.log('正在生成圖片...');
-                // 使用 testMode = false 來生成真實圖片
-                const response = await puter.ai.txt2img(prompt, false);
                 
-                console.log('圖片生成 API 回應:', response);
+                // 根據最新API文檔，txt2img接受提示詞和testMode參數，返回圖片元素
+                const imageElement = await puter.ai.txt2img(prompt, false);
                 
-                // txt2img返回圖片元素
-                return {
-                    text: `已生成圖片: "${prompt}"`,
-                    imageElement: response, // 直接使用返回的圖片元素
-                    success: true
-                };
+                console.log('圖片生成 API 回應:', imageElement);
+                
+                // txt2img應該返回一個圖片元素
+                if (!imageElement) {
+                    throw new Error('圖片生成失敗，未返回圖片內容');
+                }
+                
+                // 如果返回的是圖片元素，確保設置適當的樣式
+                if (imageElement.tagName === 'IMG') {
+                    imageElement.style.maxWidth = '100%';
+                    imageElement.style.height = 'auto';
+                    imageElement.style.borderRadius = '8px';
+                    imageElement.style.margin = '10px 0';
+                    
+                    return {
+                        text: `已生成圖片: "${prompt}"`,
+                        imageElement: imageElement,
+                        success: true
+                    };
+                } 
+                // 如果是其他格式，嘗試創建圖片元素
+                else {
+                    const img = document.createElement('img');
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.borderRadius = '8px';
+                    img.style.margin = '10px 0';
+                    
+                    if (typeof imageElement === 'string') {
+                        img.src = imageElement;
+                    } else if (imageElement instanceof Blob) {
+                        const imageUrl = URL.createObjectURL(imageElement);
+                        img.src = imageUrl;
+                    } else {
+                        throw new Error('圖片生成返回格式異常');
+                    }
+                    
+                    return {
+                        text: `已生成圖片: "${prompt}"`,
+                        imageElement: img,
+                        success: true
+                    };
+                }
             } catch (error) {
                 console.error('圖片生成錯誤:', error);
                 throw new Error(`圖片生成功能暫時不可用: ${error.message}`);
